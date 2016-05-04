@@ -1,0 +1,8 @@
+// $Id$
+// vim:ft=javascript
+
+ARG_ENABLE("gene", "enable gene support", "no");
+
+if (PHP_GENE == "yes") {
+	EXTENSION("gene", "gene.c gene_application.c gene_load.c gene_router.c gene_execute.c gene_cache.c gene_common.c gene_config.c");
+}
