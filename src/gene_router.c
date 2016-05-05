@@ -46,18 +46,17 @@ ZEND_END_ARG_INFO()
 
 /** {{{ static void get_path_router(char *keyString, int keyString_len TSRMLS_DC)
  */
-zval ** get_path_router(zval **val,const char *path,zval *param TSRMLS_DC)
+zval ** get_path_router(zval **val,char *paths,zval *param TSRMLS_DC)
 {
 	zval **ret = NULL,**tmp = NULL,**leaf = NULL,*var;
-	char *paths,*seg = NULL,*ptr = NULL,*key = NULL;
+	char *seg = NULL,*ptr = NULL,*key = NULL;
 	int keylen;
 	long idx;
-	paths = estrndup(path,strlen(path));
-	//php_printf(" paths:%s " , paths);
 	if (strlen(paths)==0) {
 		if (zend_hash_find((*val)->value.ht, "leaf", 5, (void **)&leaf) == FAILURE){
-			leaf = NULL;
+			return NULL;
 		}
+		return leaf;
 	} else {
 		seg = php_strtok_r(paths, "/", &ptr);
 		if (ptr && strlen(seg)>0) {
@@ -124,7 +123,6 @@ zval ** get_path_router(zval **val,const char *path,zval *param TSRMLS_DC)
 			}
 		}
 	}
-	efree(paths);
 	return leaf;
 }
 /* }}} */
@@ -159,7 +157,7 @@ int get_router_info(zval **leaf,zval **cacheHook TSRMLS_DC)
 		run[size-1] = 0;
 	}
 	is = 1;
-	if (seg) {
+	if (seg && strlen(seg)>0) {
 		if (zend_hash_find((*cacheHook)->value.ht, seg, strlen(seg)+1, (void **)&h) == SUCCESS){
 			efree(hookname);
 			hookname = NULL;
