@@ -259,7 +259,7 @@ zval * request_query(int type, char * name, int len TSRMLS_DC) {
 char * get_function_content(zval **content TSRMLS_DC)
 {
 	zval *objEx,*ret,*fileName,*arg,*arg1;
-	int startline,endline;
+	int startline,endline,size;
 	zval *params[3];
 	char *result=NULL,*tmp = NULL;
 
@@ -329,11 +329,15 @@ char * get_function_content(zval **content TSRMLS_DC)
 		zval_ptr_dtor(&arg);
 
 		if (result) {
-			result = erealloc(result,strlen(result)+strlen(tmp)+1);
+			size = strlen(result)+strlen(tmp)+1;
+			result = erealloc(result,size);
 			strcat(result,tmp);
+			result[size-1] = 0;
 		} else {
-			result = ecalloc(strlen(tmp)+1,sizeof(char));
+			size = strlen(tmp)+1;
+			result = ecalloc(size,sizeof(char));
 			strcpy (result,tmp);
+			result[size-1] = 0;
 		}
 		efree(tmp);
 		++startline;
@@ -376,9 +380,12 @@ char * get_function_content(zval **content TSRMLS_DC)
 	zval_ptr_dtor(&arg);
 	zval_ptr_dtor(&arg1);
 
-	tmp = emalloc(endline-startline+1);
+	tmp = ecalloc(endline-startline+2,sizeof(char));
 	mid(tmp,result, endline-startline+1,startline);
-	efree(result);
+	if (result != NULL) {
+		efree(result);
+		result = NULL;
+	}
 	remove_extra_space(tmp);
 	params[0] = NULL;
 	params[1] = NULL;
@@ -617,8 +624,10 @@ PHP_METHOD(gene_router, __call)
 		    	if (IS_OBJECT == Z_TYPE_PP(contentval)) {
 		    		tmp = get_function_content(contentval TSRMLS_CC);
 	    			result = get_router_content_F(tmp,method,path TSRMLS_CC);
-	    			efree(tmp);
-	    			tmp = NULL;
+	    			if (tmp != NULL) {
+		    			efree(tmp);
+		    			tmp = NULL;
+	    			}
 		    	} else {
 		    		result = get_router_content(contentval,method,path TSRMLS_CC);
 		    	}
