@@ -37,14 +37,14 @@
 zend_class_entry * gene_application_ce;
 
 /*
- * {{{ void load_file(char *php_script, int php_script_len, int validity TSRMLS_DC)
+ * {{{ void load_file(char *key, int key_len,char *php_script, int validity TSRMLS_DC)
  */
-void load_file(char *php_script, int php_script_len, int validity TSRMLS_DC)
+void load_file(char *key, int key_len,char *php_script, int validity TSRMLS_DC)
 {
 	int import = 0,cur,times = 0;
 	gene_cache_container_easy *val = NULL;
-	if (php_script_len) {
-		val =  gene_cache_get_easy(php_script, php_script_len TSRMLS_CC);
+	if (key_len) {
+		val =  gene_cache_get_easy(key, key_len TSRMLS_CC);
 		if (val) {
 			cur = time(NULL);
 			times = cur - val->stime;
@@ -58,7 +58,7 @@ void load_file(char *php_script, int php_script_len, int validity TSRMLS_DC)
 			}
 		} else {
 			import = 1;
-			gene_cache_set_easy(php_script, php_script_len,gene_file_modified(php_script,0 TSRMLS_CC),validity TSRMLS_CC);
+			gene_cache_set_easy(key, key_len,gene_file_modified(php_script,0 TSRMLS_CC),validity TSRMLS_CC);
 		}
 		val = NULL;
 		if (import) {
@@ -129,12 +129,18 @@ PHP_METHOD(gene_application, __construct)
 PHP_METHOD(gene_application, load)
 {
 	zval *self = getThis();
-	char *php_script;
-	int php_script_len = 0,validity = 10;
+	char *php_script,*router_e;
+	int php_script_len = 0,validity = 10,router_e_len;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|sl", &php_script, &php_script_len, &validity) == FAILURE) {
 		return;
 	}
-	load_file(php_script, php_script_len, validity TSRMLS_CC);
+	if (GENE_G(app_key)) {
+		router_e_len = spprintf(&router_e, 0, "%s:%s", GENE_G(app_key), php_script);
+	} else {
+		router_e_len = spprintf(&router_e, 0, ":%s", php_script);
+	}
+	load_file(router_e, router_e_len,php_script, validity TSRMLS_CC);
+	efree(router_e);
 	RETURN_ZVAL(self, 1, 0);
 }
 /* }}} */

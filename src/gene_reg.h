@@ -10,22 +10,18 @@
   | obtain it through the world-wide-web, please send a note to          |
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
-  | Author: Sasou  <admin@php-gene.com> web:www.php-gene.com             |
+  | Author: Sasou  <admin@caophp.com>                                    |
   +----------------------------------------------------------------------+
 */
 
-#ifndef GENE_APPLICATION_H
-#define GENE_APPLICATION_H
-#define GENE_APPLICATION_SAFE "safe"
+#ifndef GENE_REG_H
+#define GENE_REG_H
+#define GENE_REG_PROPERTY_INSTANCE "_instance"
+#define GENE_REG_PROPERTY_REG "_reg"
 
-extern zend_class_entry *gene_application_ce;
-void load_file(char *php_script, int php_script_len, int validity TSRMLS_DC);
-int gene_file_modified(char *file, long ctime TSRMLS_DC);
+extern zend_class_entry *gene_reg_ce;
 
-GENE_MINIT_FUNCTION(application);
 
-void load_file(char *key, int key_len,char *php_script, int validity TSRMLS_DC);
-int gene_file_modified(char *file, long ctime TSRMLS_DC);
-void gene_ini_router(TSRMLS_DC);
+GENE_MINIT_FUNCTION(reg);
 
 #endif
