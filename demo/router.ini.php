@@ -6,13 +6,13 @@ $router->clear()
 		})
 	->group("/admin")
 		->get("/",function(){
-		    echo 'admin';
+			echo 'admin';
 		},"auth")
 		->get("/:name/",function($abc){
-			echo $abc;
+			var_dump($abc);
 		})
 		->get("/:name.:ext",function($abc){
-			echo $abc;
+			var_dump($abc);
 		})
 		->get("/:name/sasoud",function(){
 			echo 'dd';
@@ -37,3 +37,4 @@ $router->clear()
 		if(is_array($params))var_dump($params);
 	})
 	;
+	

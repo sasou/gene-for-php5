@@ -57,5 +57,5 @@ if test "$PHP_GENE" != "no"; then
   dnl ])
   dnl
   PHP_SUBST(GENE_SHARED_LIBADD)
-  PHP_NEW_EXTENSION(gene, gene.c gene_application.c gene_load.c gene_router.c gene_execute.c gene_cache.c gene_common.c gene_config.c, $ext_shared)
+  PHP_NEW_EXTENSION(gene, gene.c gene_application.c gene_load.c gene_reg.c gene_router.c gene_execute.c gene_cache.c gene_common.c gene_config.c, $ext_shared)
 fi

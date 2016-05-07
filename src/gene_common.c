@@ -68,6 +68,20 @@ void left(char *dst,char *src, int n)
 /* }}} */
 
 /*
+ * {{{ void leftByChar(char *dst,char *src, char val)
+ */
+void leftByChar(char *dst,char *src, char val)
+{
+	char *q=dst;
+	while(*src!='\0'){
+		if(*src==val) break;
+		*(q++) = *(src++);
+	}
+	return;
+}
+/* }}} */
+
+/*
  * {{{ mid(char *dst,char *src, int n,int m) n为长度，m为位置
  */
 void mid(char *dst,char *src, int n,int m)

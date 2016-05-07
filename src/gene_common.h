@@ -20,6 +20,7 @@
 char *strtoupper(char *str);
 char *strtolower(char *str);
 void left(char *dst,char *src, int n);
+void leftByChar(char *dst,char *src, char val);
 void mid(char *dst,char *src, int n,int m);
 void right(char *dst,char *src, int n);
 char * replaceAll(char * src,const char oldChar,const char newChar);

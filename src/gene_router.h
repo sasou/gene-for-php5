@@ -25,20 +25,20 @@
 #define GENE_ROUTER_LEAF_RUN_L "%s/%s/leaf/run"
 #define GENE_ROUTER_LEAF_HOOK_L "%s/%s/leaf/hook"
 #define GENE_ROUTER_CHIRD "chird/"
-#define GENE_ROUTER_CONTENT_B  "if(count($gene_url) == 0) $gene_url = array(NULL);$gene_h=call_user_func_array(array('%s','%s'),$gene_url);if(isset($gene_h) && ($gene_h == 0))return;"
-#define GENE_ROUTER_CONTENT_A  "if(isset($gene_m)) $gene_p = array(0=>$gene_m);else $gene_p = array(NULL);call_user_func_array(array('%s','%s'),$gene_p);"
-#define GENE_ROUTER_CONTENT_M  "if(count($gene_url) == 0) $gene_url = array(NULL);$gene_m=call_user_func_array(array('%s','%s'),$gene_url);"
-#define GENE_ROUTER_CONTENT_H  "if(count($gene_url) == 0) $gene_url = array(NULL);call_user_func_array(array('%s','%s'),$gene_url);"
-#define GENE_ROUTER_CONTENT_FB  "if(count($gene_url) == 0) $gene_url = array(NULL);$gene_h=call_user_func_array(%s,$gene_url);if(isset($gene_h) && ($gene_h == 0))return;"
-#define GENE_ROUTER_CONTENT_FA  "if(isset($gene_m)) $gene_p = array(0=>$gene_m);else $gene_p = array(NULL);call_user_func_array(%s,$gene_p);"
-#define GENE_ROUTER_CONTENT_FM  "if(count($gene_url) == 0) $gene_url = array(NULL);$gene_m=call_user_func_array(%s,$gene_url);"
-#define GENE_ROUTER_CONTENT_FH  "if(count($gene_url) == 0) $gene_url = array(NULL);call_user_func_array(%s,$gene_url);"
-
-
+#define GENE_ROUTER_CHIRD_PRE  "$gene_url = gene_application::urlParams();"
+#define GENE_ROUTER_CONTENT_B  "$gene_b= new %s;$gene_h=$gene_b->%s($gene_url);if(isset($gene_h) && ($gene_h == 0))return;"
+#define GENE_ROUTER_CONTENT_A  "$gene_a= new %s;$gene_a->%s($gene_mp);"
+#define GENE_ROUTER_CONTENT_M  "$gene_m= new %s;$gene_mp=$gene_m->%s($gene_url);"
+#define GENE_ROUTER_CONTENT_H  "$gene_h= new %s;$gene_h=$gene_h->%s($gene_url);if(isset($gene_h) && ($gene_h == 0))return;"
+#define GENE_ROUTER_CONTENT_FB  "$funb=%s;$gene_h=$funb($gene_url);if(isset($gene_h) && ($gene_h == 0))return;"
+#define GENE_ROUTER_CONTENT_FA  "$funa=%s;$funa($gene_mp);"
+#define GENE_ROUTER_CONTENT_FM  "$funm=%s;$gene_mp=$funm($gene_url);"
+#define GENE_ROUTER_CONTENT_FH  "$funh=%s;$gene_h=$funh($gene_url);if(isset($gene_h) && ($gene_h == 0))return;"
 
 
 extern zend_class_entry *gene_router_ce;
 
+zval * request_query(int type, char * name, int len TSRMLS_DC);
 void get_router_content_run(char *methodin,char *pathin,zval *safe TSRMLS_DC);
 
 GENE_MINIT_FUNCTION(router);

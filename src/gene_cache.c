@@ -27,6 +27,7 @@
 
 #include "php_gene.h"
 #include "gene_cache.h"
+#include "gene_common.h"
 
 zend_class_entry * gene_cache_ce;
 
@@ -529,21 +530,23 @@ zval * gene_cache_get_by_config(char *keyString, int keyString_len,char *path TS
 	gene_cache_container **copyval = NULL;
 	if (zend_hash_find(GENE_G(cache), keyString, keyString_len+1, (void **)&copyval) == SUCCESS){
 		tmp = (*copyval)->data;
-		seg = php_strtok_r(path, "/", &ptr);
-		while (seg) {
-			if (zend_hash_find(Z_ARRVAL_P(tmp), seg, strlen(seg)+1, (void **)&ret) == FAILURE){
-				tmp = NULL;
-				return NULL;
+		if (path != NULL) {
+			replaceAll(path,'.','/');
+			seg = php_strtok_r(path, "/", &ptr);
+			while (seg) {
+				if (zend_hash_find(Z_ARRVAL_P(tmp), seg, strlen(seg)+1, (void **)&ret) == FAILURE){
+					tmp = NULL;
+					return NULL;
+				}
+				tmp = (*ret);
+				seg = php_strtok_r(NULL, "/", &ptr);
 			}
-			tmp = (*ret);
-			seg = php_strtok_r(NULL, "/", &ptr);
+			if (ret) {
+				tmp = NULL;
+				return gene_cache_zval_losable(*ret TSRMLS_CC);
+			}
 		}
-		if (ret) {
-			tmp = NULL;
-			return gene_cache_zval_losable(*ret TSRMLS_CC);
-		}
-		tmp = NULL;
-		return NULL;
+		return gene_cache_zval_losable(tmp TSRMLS_CC);
 
 	}
 	tmp = NULL;

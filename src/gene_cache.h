@@ -17,6 +17,7 @@
 #ifndef GENE_CACHE_H
 #define GENE_CACHE_H
 #define GENE_CACHE_SAFE	"safe"
+#define PHP_GENE_URL_PARAMS ":gene_url"
 
 struct _gene_cache_container {
 	long ctime;

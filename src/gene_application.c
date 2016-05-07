@@ -30,6 +30,9 @@
 #include "gene_application.h"
 #include "gene_load.h"
 #include "gene_cache.h"
+#include "gene_config.h"
+#include "gene_router.h"
+#include "gene_common.h"
 
 zend_class_entry * gene_application_ce;
 
@@ -78,6 +81,30 @@ int gene_file_modified(char *file, long ctime TSRMLS_DC)
 }
 /* }}} */
 
+
+/** {{{ void gene_ini_router(TSRMLS_DC)
+*/
+void gene_ini_router(TSRMLS_DC)
+{
+	zval *server = NULL,** temp;
+	if (!GENE_G(method) && !GENE_G(path)) {
+		server = request_query(TRACK_VARS_SERVER, NULL, 0 TSRMLS_CC);
+		if (server) {
+	    	if (zend_hash_find(HASH_OF(server), "REQUEST_METHOD", 15, (void **)&temp) == SUCCESS) {
+	    		GENE_G(method) = estrndup(Z_STRVAL_PP(temp), Z_STRLEN_PP(temp));
+	    		strtolower(GENE_G(method));
+	    	}
+	    	if (zend_hash_find(HASH_OF(server), "REQUEST_URI", 12, (void **)&temp) == SUCCESS) {
+	    		GENE_G(path) = ecalloc(Z_STRLEN_PP(temp)+1,sizeof(char));
+	    		leftByChar(GENE_G(path),Z_STRVAL_PP(temp), '?');
+	    	}
+		}
+		server = NULL;
+	}
+}
+/* }}} */
+
+
 /*
  * {{{ gene_application
  */
@@ -113,6 +140,51 @@ PHP_METHOD(gene_application, load)
 /* }}} */
 
 /*
+ * {{{ public gene_application::urlParams()
+ */
+PHP_METHOD(gene_application, urlParams)
+{
+	zval *cache = NULL;
+	int keyString_len;
+	char *keyString = NULL;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &keyString, &keyString_len) == FAILURE) {
+		return;
+	}
+    cache = gene_cache_get_by_config(PHP_GENE_URL_PARAMS, strlen(PHP_GENE_URL_PARAMS), keyString TSRMLS_CC);
+    if (cache) {
+    	RETURN_ZVAL(cache, 1, 1);
+    }
+	RETURN_NULL();
+}
+/* }}} */
+
+/*
+ * {{{ public gene_application::config()
+ */
+PHP_METHOD(gene_application, config)
+{
+	zval *cache = NULL;
+	int router_e_len,keyString_len;
+	char *router_e,*keyString;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &keyString, &keyString_len) == FAILURE) {
+		return;
+	}
+
+	if (GENE_G(app_key)) {
+		router_e_len = spprintf(&router_e, 0, "%s%s", GENE_G(app_key), GENE_CONFIG_CACHE);
+	} else {
+		router_e_len = spprintf(&router_e, 0, "%s", GENE_CONFIG_CACHE);
+	}
+    cache = gene_cache_get_by_config(router_e, router_e_len, keyString TSRMLS_CC);
+    efree(router_e);
+    if (cache) {
+    	RETURN_ZVAL(cache, 1, 1);
+    }
+	RETURN_NULL();
+}
+/* }}} */
+
+/*
  * {{{ public gene_application::run($method,$path)
  */
 PHP_METHOD(gene_application, run)
@@ -123,6 +195,9 @@ PHP_METHOD(gene_application, run)
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"|ss", &methodin, &methodlen,&pathin, &pathlen) == FAILURE)
     {
         RETURN_NULL();
+    }
+    if (methodin == NULL && pathin == NULL) {
+    	gene_ini_router(TSRMLS_CC);
     }
     if (GENE_G(app_key)) {
     	MAKE_STD_ZVAL(safe);
@@ -143,6 +218,8 @@ PHP_METHOD(gene_application, run)
 zend_function_entry gene_application_methods[] = {
 		PHP_ME(gene_application, load, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_application, run, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(gene_application, urlParams, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+		PHP_ME(gene_application, config, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 		PHP_ME(gene_application, __construct, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
 		{NULL, NULL, NULL}
 };

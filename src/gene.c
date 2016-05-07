@@ -33,6 +33,7 @@
 #include "gene_router.h"
 #include "gene_execute.h"
 #include "gene_cache.h"
+#include "gene_reg.h"
 
 
 ZEND_DECLARE_MODULE_GLOBALS(gene);
@@ -51,6 +52,8 @@ PHP_INI_END()
  */
 static void php_gene_init_globals()
 {
+	GENE_G(method) = NULL;
+	GENE_G(path) = NULL;
 	GENE_G(app_key) = NULL;
 	GENE_G(cache) = NULL;
 	GENE_G(cache_easy) = NULL;
@@ -88,6 +91,7 @@ PHP_MINIT_FUNCTION(gene)
 	/* startup components */
 	GENE_STARTUP(application);
 	GENE_STARTUP(load);
+	GENE_STARTUP(reg);
 	GENE_STARTUP(config);
 	GENE_STARTUP(router);
     GENE_STARTUP(execute);
@@ -105,9 +109,13 @@ PHP_MSHUTDOWN_FUNCTION(gene)
 	/* uncomment this line if you have INI entries
 	UNREGISTER_INI_ENTRIES();
 	*/
-    if (GENE_G(app_key)) {
-    	efree(GENE_G(app_key));
-    	GENE_G(app_key) = NULL;
+    if (GENE_G(method)) {
+    	efree(GENE_G(method));
+    	GENE_G(method) = NULL;
+    }
+    if (GENE_G(path)) {
+    	efree(GENE_G(path));
+    	GENE_G(path) = NULL;
     }
 	if (GENE_G(cache)) {
 		zend_hash_destroy(GENE_G(cache));
@@ -139,10 +147,17 @@ PHP_RINIT_FUNCTION(gene)
  */
 PHP_RSHUTDOWN_FUNCTION(gene)
 {
+    if (GENE_G(method)) {
+    	GENE_G(method) = NULL;
+    }
+    if (GENE_G(path)) {
+    	GENE_G(path) = NULL;
+    }
     if (GENE_G(app_key)) {
     	efree(GENE_G(app_key));
     	GENE_G(app_key) = NULL;
     }
+    gene_cache_del(PHP_GENE_URL_PARAMS, strlen(PHP_GENE_URL_PARAMS) TSRMLS_CC);
 	return SUCCESS;
 }
 /* }}} */
