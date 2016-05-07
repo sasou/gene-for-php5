@@ -19,13 +19,11 @@
 #define GENE_APPLICATION_SAFE "safe"
 
 extern zend_class_entry *gene_application_ce;
-void load_file(char *php_script, int php_script_len, int validity TSRMLS_DC);
-int gene_file_modified(char *file, long ctime TSRMLS_DC);
-
-GENE_MINIT_FUNCTION(application);
 
 void load_file(char *key, int key_len,char *php_script, int validity TSRMLS_DC);
 int gene_file_modified(char *file, long ctime TSRMLS_DC);
 void gene_ini_router(TSRMLS_DC);
+
+GENE_MINIT_FUNCTION(application);
 
 #endif
