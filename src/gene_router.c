@@ -33,6 +33,7 @@
 #include "gene_router.h"
 #include "gene_cache.h"
 #include "gene_common.h"
+#include "gene_application.h"
 
 zend_class_entry *gene_router_ce;
 
@@ -206,6 +207,49 @@ int get_router_info(zval **leaf,zval **cacheHook TSRMLS_DC)
 		efree(hookname);
 		hookname = NULL;
 	}
+	run = NULL;
+	return 1;
+}
+/* }}} */
+
+
+/** {{{ static void get_router_info(char *keyString, int keyString_len TSRMLS_DC)
+ */
+int get_router_error_run(char *errorName,zval *safe TSRMLS_DC)
+{
+	zval *cacheHook = NULL,**error = NULL;
+	int router_e_len;
+	char *run = NULL,*router_e;
+	if (safe != NULL && Z_STRLEN_P(safe)) {
+		router_e_len = spprintf(&router_e, 0, "%s%s", Z_STRVAL_P(safe), GENE_ROUTER_ROUTER_EVENT);
+	} else {
+		router_e_len = spprintf(&router_e, 0, "%s", GENE_ROUTER_ROUTER_EVENT);
+	}
+	cacheHook = gene_cache_get_quick(router_e, router_e_len TSRMLS_CC);
+	efree(router_e);
+	if (cacheHook){
+		router_e_len = spprintf(&router_e, 0, "error:%s", errorName);
+		if (zend_hash_find(cacheHook->value.ht, router_e, router_e_len+1, (void **)&error) == SUCCESS) {
+			if (error) {
+				spprintf(&run, 0, "%s%s", GENE_ROUTER_CHIRD_PRE, Z_STRVAL_PP(error));
+			}
+		} else {
+			efree(router_e);
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Gene Unknown Error:%s",  errorName);
+			return 0;
+		}
+		efree(router_e);
+	} else {
+		return 0;
+	}
+	zend_try {
+		zend_eval_stringl(run, strlen(run), NULL, "" TSRMLS_CC);
+	} zend_catch {
+		efree(run);
+		run = NULL;
+		zend_bailout();
+	} zend_end_try();
+	efree(run);
 	run = NULL;
 	return 1;
 }
@@ -470,7 +514,7 @@ void get_router_content_run(char *methodin,char *pathin,zval *safe TSRMLS_DC)
     }
 
     if (method == NULL || path == NULL) {
-        php_printf("Gene Unknown method:%s" , method);
+    	php_error_docref(NULL TSRMLS_CC, E_WARNING, "Gene Unknown Method: NULL");
         return;
     }
 	if (safe != NULL && Z_STRLEN_P(safe)) {
@@ -482,7 +526,7 @@ void get_router_content_run(char *methodin,char *pathin,zval *safe TSRMLS_DC)
     efree(router_e);
 	if (cache) {
 		if (zend_hash_find(cache->value.ht, method, strlen(method)+1, (void **)&temp) == FAILURE){
-			php_printf("Gene Unknown method:%s" , method);
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Gene Unknown Method:%s",  method);
 			efree(method);
 			efree(path);
 			// zval_ptr_dtor(&cache);
@@ -503,7 +547,11 @@ void get_router_content_run(char *methodin,char *pathin,zval *safe TSRMLS_DC)
 			get_router_info(lead,&cacheHook TSRMLS_CC);
 			lead = NULL;
 		} else {
-			php_printf("Gene Unknown method:%s" , GENE_G(path));
+			if (GENE_G(path)) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Gene Unknown Url:%s",  GENE_G(path));
+			} else {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Gene Unknown Url:%s",  path);
+			}
 		}
 		cache = NULL;
 		//zval_ptr_dtor(&cache);
@@ -512,13 +560,37 @@ void get_router_content_run(char *methodin,char *pathin,zval *safe TSRMLS_DC)
 			cacheHook = NULL;
 		}
 	} else {
-		php_printf("Gene Unknown method:%s" , path);
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Gene Unknown Url:%s",  path);
 	}
 	efree(method);
 	efree(path);
 	temp = NULL;
 	return;
 }
+
+
+char * str_add1(const char *s, int length)
+{
+	char *p;
+#ifdef ZEND_SIGNALS
+	TSRMLS_FETCH();
+#endif
+
+	HANDLE_BLOCK_INTERRUPTIONS();
+
+	p = (char *) ecalloc(length+1,sizeof(char));
+	if (UNEXPECTED(p == NULL)) {
+		HANDLE_UNBLOCK_INTERRUPTIONS();
+		return p;
+	}
+	if (length) {
+		memcpy(p, s, length);
+	}
+	p[length] = 0;
+	HANDLE_UNBLOCK_INTERRUPTIONS();
+	return p;
+}
+
 
 /*
  * {{{ gene_router_methods
@@ -545,6 +617,32 @@ PHP_METHOD(gene_router, run)
 /*
  * {{{ gene_router_methods
  */
+PHP_METHOD(gene_router, runError)
+{
+	char *methodin = NULL;
+	int methodlen;
+	zval *safe = NULL;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"s", &methodin, &methodlen) == FAILURE)
+    {
+        RETURN_NULL();
+    }
+    if (GENE_G(app_key)) {
+    	MAKE_STD_ZVAL(safe);
+    	ZVAL_STRING(safe,GENE_G(app_key),1);
+    }
+	get_router_error_run(methodin,safe TSRMLS_CC);
+	if (safe) {
+		zval_ptr_dtor(&safe);
+		safe = NULL;
+	}
+	RETURN_TRUE;
+}
+/* }}} */
+
+/*
+ * {{{ gene_router_methods
+ */
 PHP_METHOD(gene_router, __construct)
 {
 	zval *safe = NULL;
@@ -563,30 +661,9 @@ PHP_METHOD(gene_router, __construct)
 }
 /* }}} */
 
-char * str_add1(const char *s, int length)
-{
-	char *p;
-#ifdef ZEND_SIGNALS
-	TSRMLS_FETCH();
-#endif
-
-	HANDLE_BLOCK_INTERRUPTIONS();
-
-	p = (char *) ecalloc(length+1,sizeof(char));
-	if (UNEXPECTED(p == NULL)) {
-		HANDLE_UNBLOCK_INTERRUPTIONS();
-		return p;
-	}
-	if (length) {
-		memcpy(p, s, length);
-	}
-	p[length] = 0;
-	HANDLE_UNBLOCK_INTERRUPTIONS();
-	return p;
-}
 
 /*
- * {{{ public gene_router::GetOpcodes($codeString)
+ * {{{ public gene_router::__call($codeString)
  */
 PHP_METHOD(gene_router, __call)
 {
@@ -912,6 +989,7 @@ zend_function_entry gene_router_methods[] = {
 		PHP_ME(gene_router, clear, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_router, getTime, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_router, getRouter, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(gene_router, runError, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 		PHP_ME(gene_router, run, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_router, __call, gene_router_call_arginfo, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_router, __construct, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
