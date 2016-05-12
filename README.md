@@ -82,9 +82,8 @@ DEMO：
 	测试网站：php-gene.com
 	http://php-gene.com/
 	可测试路由实例：
-	http://php-gene.com/admin
-	http://php-gene.com/index
-	http://php-gene.com/admin.html
-	http://php-gene.com/admin/demo.jpg
-	http://php-gene.com/admin/ajax.js
-	http://php-gene.com/admin/blog/test/baidu
+	http://php-gene.com/demo/admin
+	http://php-gene.com/demo/admin.html
+	http://php-gene.com/demo/admin/demo.jpg
+	http://php-gene.com/demo/admin/ajax.js
+	http://php-gene.com/demo/admin/blog/test/baidu

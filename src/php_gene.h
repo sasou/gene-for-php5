@@ -55,6 +55,7 @@ ZEND_BEGIN_MODULE_GLOBALS(gene)
 	char 		*directory;
 	char		*method;
 	char 		*path;
+	char 		*router_path;
 	char 		*app_key;
 	HashTable	*cache;
 	HashTable	*cache_easy;

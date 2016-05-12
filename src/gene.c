@@ -54,6 +54,7 @@ static void php_gene_init_globals()
 {
 	GENE_G(method) = NULL;
 	GENE_G(path) = NULL;
+	GENE_G(router_path) = NULL;
 	GENE_G(app_key) = NULL;
 	GENE_G(cache) = NULL;
 	GENE_G(cache_easy) = NULL;
@@ -117,6 +118,10 @@ PHP_MSHUTDOWN_FUNCTION(gene)
     	efree(GENE_G(path));
     	GENE_G(path) = NULL;
     }
+    if (GENE_G(router_path)) {
+    	efree(GENE_G(router_path));
+    	GENE_G(router_path) = NULL;
+    }
 	if (GENE_G(cache)) {
 		zend_hash_destroy(GENE_G(cache));
 		pefree(GENE_G(cache), 1);
@@ -152,6 +157,10 @@ PHP_RSHUTDOWN_FUNCTION(gene)
     }
     if (GENE_G(path)) {
     	GENE_G(path) = NULL;
+    }
+    if (GENE_G(router_path)) {
+    	efree(GENE_G(router_path));
+    	GENE_G(router_path) = NULL;
     }
     if (GENE_G(app_key)) {
     	efree(GENE_G(app_key));

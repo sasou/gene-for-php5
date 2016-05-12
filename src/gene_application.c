@@ -104,6 +104,24 @@ void gene_ini_router(TSRMLS_DC)
 }
 /* }}} */
 
+/** {{{ void gene_ini_router(TSRMLS_DC)
+*/
+void gene_router_set_uri(zval **leaf TSRMLS_DC)
+{
+	zval **key;
+	if (zend_hash_find((*leaf)->value.ht, "key", 4, (void **)&key) == SUCCESS){
+		if (Z_STRLEN_PP(key)) {
+			if (GENE_G(router_path)){
+			    if (GENE_G(router_path)) {
+			    	efree(GENE_G(router_path));
+			    	GENE_G(router_path) = NULL;
+			    }
+			}
+			GENE_G(router_path) =  estrndup(Z_STRVAL_PP(key), Z_STRLEN_PP(key));
+		}
+	}
+}
+/* }}} */
 
 /*
  * {{{ gene_application
@@ -160,6 +178,18 @@ PHP_METHOD(gene_application, urlParams)
     if (cache) {
     	RETURN_ZVAL(cache, 1, 1);
     }
+	RETURN_NULL();
+}
+/* }}} */
+
+/*
+ * {{{ public gene_application::getRouterUri()
+ */
+PHP_METHOD(gene_application, getRouterUri)
+{
+	if (GENE_G(router_path)) {
+		RETURN_STRING(GENE_G(router_path),1);
+	}
 	RETURN_NULL();
 }
 /* }}} */
@@ -225,6 +255,7 @@ zend_function_entry gene_application_methods[] = {
 		PHP_ME(gene_application, load, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_application, run, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_application, urlParams, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+		PHP_ME(gene_application, getRouterUri, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 		PHP_ME(gene_application, config, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 		PHP_ME(gene_application, __construct, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
 		{NULL, NULL, NULL}
