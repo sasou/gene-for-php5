@@ -25,7 +25,9 @@ $router->clear()
 	->get("/index",function(){
 		echo 'index';
 	})
-	->error(401,"gene_cache@get")
+	->error(401,function(){
+		echo " 401 ";
+	})
 	->hook("auth",function(){
 		echo " auth ";
 	})

@@ -212,6 +212,36 @@ int get_router_info(zval **leaf,zval **cacheHook TSRMLS_DC)
 }
 /* }}} */
 
+/** {{{ static void get_router_info(char *keyString, int keyString_len TSRMLS_DC)
+ */
+int get_router_error_run_by_router(zval *cacheHook,char *errorName TSRMLS_DC)
+{
+	zval **error = NULL;
+	int router_e_len;
+	char *run = NULL,*router_e;
+	if (cacheHook){
+		router_e_len = spprintf(&router_e, 0, "error:%s", errorName);
+		if (zend_hash_find(cacheHook->value.ht, router_e, router_e_len+1, (void **)&error) == SUCCESS) {
+				spprintf(&run, 0, "%s%s", GENE_ROUTER_CHIRD_PRE, Z_STRVAL_PP(error));
+				zend_try {
+					zend_eval_stringl(run, strlen(run), NULL, errorName TSRMLS_CC);
+				} zend_catch {
+					efree(router_e);
+					efree(run);
+					run = NULL;
+					zend_bailout();
+				} zend_end_try();
+				efree(router_e);
+				efree(run);
+				run = NULL;
+				return 1;
+		}
+		efree(router_e);
+		return 0;
+	}
+	return 0;
+}
+/* }}} */
 
 /** {{{ static void get_router_info(char *keyString, int keyString_len TSRMLS_DC)
  */
@@ -514,7 +544,7 @@ void get_router_content_run(char *methodin,char *pathin,zval *safe TSRMLS_DC)
     }
 
     if (method == NULL || path == NULL) {
-    	php_error_docref(NULL TSRMLS_CC, E_WARNING, "Gene Unknown Method: NULL");
+    	php_error_docref(NULL TSRMLS_CC, E_WARNING, "Gene Unknown Method And Url: NULL");
         return;
     }
 	if (safe != NULL && Z_STRLEN_P(safe)) {
@@ -526,7 +556,7 @@ void get_router_content_run(char *methodin,char *pathin,zval *safe TSRMLS_DC)
     efree(router_e);
 	if (cache) {
 		if (zend_hash_find(cache->value.ht, method, strlen(method)+1, (void **)&temp) == FAILURE){
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Gene Unknown Method:%s",  method);
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Gene Unknown Method Cache:%s",  method);
 			efree(method);
 			efree(path);
 			// zval_ptr_dtor(&cache);
@@ -547,10 +577,12 @@ void get_router_content_run(char *methodin,char *pathin,zval *safe TSRMLS_DC)
 			get_router_info(lead,&cacheHook TSRMLS_CC);
 			lead = NULL;
 		} else {
-			if (GENE_G(path)) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Gene Unknown Url:%s",  GENE_G(path));
-			} else {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Gene Unknown Url:%s",  path);
+			if (!get_router_error_run_by_router(cacheHook,"401" TSRMLS_CC)) {
+				if (GENE_G(path)) {
+					php_error_docref(NULL TSRMLS_CC, E_WARNING, "Gene Unknown Url:%s",  GENE_G(path));
+				} else {
+					php_error_docref(NULL TSRMLS_CC, E_WARNING, "Gene Unknown Url:%s",  path);
+				}
 			}
 		}
 		cache = NULL;
@@ -560,7 +592,7 @@ void get_router_content_run(char *methodin,char *pathin,zval *safe TSRMLS_DC)
 			cacheHook = NULL;
 		}
 	} else {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Gene Unknown Url:%s",  path);
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Gene Unknown Router Cache");
 	}
 	efree(method);
 	efree(path);
