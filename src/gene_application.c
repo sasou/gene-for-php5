@@ -183,6 +183,30 @@ PHP_METHOD(gene_application, urlParams)
 /* }}} */
 
 /*
+ * {{{ public gene_application::getMethod()
+ */
+PHP_METHOD(gene_application, getMethod)
+{
+	if (GENE_G(method)) {
+		RETURN_STRING(GENE_G(method),1);
+	}
+	RETURN_NULL();
+}
+/* }}} */
+
+/*
+ * {{{ public gene_application::getPath()
+ */
+PHP_METHOD(gene_application, getPath)
+{
+	if (GENE_G(path)) {
+		RETURN_STRING(GENE_G(path),1);
+	}
+	RETURN_NULL();
+}
+/* }}} */
+
+/*
  * {{{ public gene_application::getRouterUri()
  */
 PHP_METHOD(gene_application, getRouterUri)
@@ -221,12 +245,37 @@ PHP_METHOD(gene_application, config)
 /* }}} */
 
 /*
+ * {{{ public gene_load::autoload($key)
+ */
+PHP_METHOD(gene_application, autoload)
+{
+	int fileName_len = 0,directory_len = 0;
+	char *fileName = NULL,*directory = NULL;
+	zval *self = getThis();
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|ss", &directory, &directory_len, &fileName, &fileName_len) == FAILURE) {
+		return;
+	}
+	if (directory_len >0 ) {
+	    if (!GENE_G(directory)) {
+	    	GENE_G(directory) = estrndup(directory, directory_len);
+	    }
+	}
+	if (fileName_len >0 ) {
+		gene_loader_register_function(fileName TSRMLS_CC);
+	} else {
+		gene_loader_register_function(NULL TSRMLS_CC);
+	}
+    RETURN_ZVAL(self, 1, 0);
+}
+/* }}} */
+
+/*
  * {{{ public gene_application::run($method,$path)
  */
 PHP_METHOD(gene_application, run)
 {
 	char *methodin = NULL,*pathin = NULL;
-	int methodlen,pathlen;
+	int methodlen = 0,pathlen = 0;
 	zval *self = getThis(),*safe = NULL;
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"|ss", &methodin, &methodlen,&pathin, &pathlen) == FAILURE)
     {
@@ -239,6 +288,7 @@ PHP_METHOD(gene_application, run)
     	MAKE_STD_ZVAL(safe);
     	ZVAL_STRING(safe,GENE_G(app_key),1);
     }
+
 	get_router_content_run(methodin,pathin,safe TSRMLS_CC);
 	if (safe) {
 		zval_ptr_dtor(&safe);
@@ -253,8 +303,11 @@ PHP_METHOD(gene_application, run)
  */
 zend_function_entry gene_application_methods[] = {
 		PHP_ME(gene_application, load, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(gene_application, autoload, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_application, run, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_application, urlParams, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+		PHP_ME(gene_application, getMethod, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+		PHP_ME(gene_application, getPath, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 		PHP_ME(gene_application, getRouterUri, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 		PHP_ME(gene_application, config, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 		PHP_ME(gene_application, __construct, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)

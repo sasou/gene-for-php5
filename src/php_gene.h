@@ -51,7 +51,6 @@ PHP_MINFO_FUNCTION(gene);
 
 
 ZEND_BEGIN_MODULE_GLOBALS(gene)
-	char		*base_uri;
 	char 		*directory;
 	char		*method;
 	char 		*path;

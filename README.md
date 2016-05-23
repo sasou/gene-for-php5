@@ -2,7 +2,7 @@
 
 	Simple, high performance,C extension framework for php！
 
-版本 1.0.0
+版本 1.0.1
 
 简单、高性能的php c扩展框架！
 框架的核心是gene_application类，加载配置文件并启动：
@@ -12,6 +12,14 @@
 	$app->load("router.ini.php")
 	    ->load("config.ini.php")
 	    ->run();
+		
+	该类其他方法：
+	$app->autoload($path,$loadFN);
+	$app->urlParams();
+	$app->getMethod();
+	$app->getPath();
+	$app->getRouterUri();
+	$app->config();
 
 框架的基础是一个高性能的进程缓存模块，基于缓存模块，实现了一个高性能的强大路由解析以及配置缓存；
 路由强大灵活，支持回调、rest、http请求方式（get,post,put,patch,delete,trace,connect,options,head）等：
@@ -19,9 +27,15 @@
 	<?php
 	$router = new gene_router();
 	$router->clear()
+		//定义get
 		->get("/",function(){
-				echo "index";
+				echo "index get";
 			})
+		//定义post
+		->post("/",function(){
+				echo "index post";
+			})	
+		//分组模式
 		->group("/admin")
 			->get("/:name/",function($abc){
 				echo $abc;
@@ -40,16 +54,23 @@
 				echo 'admin';
 			},'adminauth')
 		->group()
+		
 		->get("/index",function(){
 			echo 'index';
 		})
-		->error(401,"gene_cache@get")
+		//定义401
+		->error(401,function(){
+			echo " 401 ";
+		})
+		//定义自定义钩子
 		->hook("auth",function(){
 			echo " auth ";
 		})
+		//全局前置钩子
 		->hook("before", function(){
 			echo " before ";
 		})
+		//全局后置钩子
 		->hook("after", function($params){
 			echo " after ";
 			if(is_array($params))var_dump($params);
@@ -61,8 +82,34 @@
 	$config = new gene_config();
 	$config->clear();
 	$config>set("dsfsdfsd",array('_url'=>array('sd'=>'sdfsdf222','sds'=>'sdfsf678'),'port'=>3307));
-	支持快捷调用（.分隔）：
+	支持快捷存与取（.分隔）：
+	$config->set("dsfsdfsd.port",'test');
 	$config->get("dsfsdfsd.port");
+	
+cahce类提供进程级缓存功能：
+
+	<?php
+	$config = new gene_cache();
+	$config->set($cacheName,$value);
+	$config->get($cacheName);
+	$config->exists($cacheName);
+	$config->del($cacheName);
+	
+load类定义了自动加载：
+
+	<?php
+	$config = new gene_load();
+	$config->autoload($path,$loadFN);
+	$config->import($fileName);
+	
+reg类定义了类的单例集中管理：
+
+	<?php
+	$config = new gene_get();
+	$config->get($className);
+	$config->set($className,$class);
+	$config->has($className);
+	$config->del($className);
 	
 安装：
 	

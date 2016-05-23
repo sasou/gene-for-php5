@@ -52,6 +52,7 @@ PHP_INI_END()
  */
 static void php_gene_init_globals()
 {
+	GENE_G(directory) = NULL;
 	GENE_G(method) = NULL;
 	GENE_G(path) = NULL;
 	GENE_G(router_path) = NULL;
@@ -110,6 +111,10 @@ PHP_MSHUTDOWN_FUNCTION(gene)
 	/* uncomment this line if you have INI entries
 	UNREGISTER_INI_ENTRIES();
 	*/
+    if (GENE_G(directory)) {
+    	efree(GENE_G(directory));
+    	GENE_G(directory) = NULL;
+    }
     if (GENE_G(method)) {
     	efree(GENE_G(method));
     	GENE_G(method) = NULL;
@@ -152,10 +157,16 @@ PHP_RINIT_FUNCTION(gene)
  */
 PHP_RSHUTDOWN_FUNCTION(gene)
 {
+    if (GENE_G(directory)) {
+    	efree(GENE_G(directory));
+    	GENE_G(directory) = NULL;
+    }
     if (GENE_G(method)) {
+    	efree(GENE_G(method));
     	GENE_G(method) = NULL;
     }
     if (GENE_G(path)) {
+    	efree(GENE_G(path));
     	GENE_G(path) = NULL;
     }
     if (GENE_G(router_path)) {

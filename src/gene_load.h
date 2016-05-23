@@ -16,6 +16,9 @@
 
 #ifndef GENE_LOAD_H
 #define GENE_LOAD_H
+#define GENE_LOAD_PROPERTY_INSTANCE "_instance"
+#define GENE_SPL_AUTOLOAD_REGISTER_NAME "spl_autoload_register"
+#define GENE_AUTOLOAD_FUNC_NAME 		"gene_load::autoload"
 
 #if ((PHP_MAJOR_VERSION == 5) && (PHP_MINOR_VERSION > 2)) || (PHP_MAJOR_VERSION > 5)
 #define GENE_STORE_EG_ENVIRON() \
@@ -51,6 +54,9 @@
 extern zend_class_entry *gene_load_ce;
 
 int gene_load_import(char *path TSRMLS_DC);
+zval *gene_load_instance(zval *this_ptr TSRMLS_DC);
+int gene_loader_register(zval *loader,char *methodName TSRMLS_DC);
+int gene_loader_register_function(char *methodName TSRMLS_DC);
 
 GENE_MINIT_FUNCTION(load);
 
