@@ -105,7 +105,7 @@ load类定义了自动加载：
 reg类定义了类的单例集中管理：
 
 	<?php
-	$config = new gene_get();
+	$config = new gene_reg();
 	$config->get($className);
 	$config->set($className,$class);
 	$config->has($className);
