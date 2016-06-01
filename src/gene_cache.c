@@ -165,9 +165,9 @@ static void gene_cache_easy_dtor(gene_cache_container_easy **cache TSRMLS_DC)
 /* }}} */
 
 /*
- * {{{ static void * gene_cache_init(TSRMLS_DC)
+ * {{{ static void * gene_cache_init(TSRMLS_D)
  */
-void gene_cache_init(){
+void gene_cache_init(TSRMLS_D){
 	if (!GENE_G(cache)) {
 		GENE_G(cache) = (HashTable *)pemalloc(sizeof(HashTable), 1);
 		if (!GENE_G(cache)) {

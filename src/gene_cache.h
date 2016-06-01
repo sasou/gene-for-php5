@@ -41,7 +41,7 @@ extern zend_class_entry *gene_cache_ce;
 
 
 
-void gene_cache_init(TSRMLS_DC);
+void gene_cache_init(TSRMLS_D);
 void gene_cache_set(char *keyString, int keyString_len, zval *zvalue, int validity TSRMLS_DC);
 zval * gene_cache_get(char *keyString, int keyString_len TSRMLS_DC);
 zval * gene_cache_get_quick(char *keyString, int keyString_len TSRMLS_DC);

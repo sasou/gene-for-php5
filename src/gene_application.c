@@ -62,7 +62,7 @@ void load_file(char *key, int key_len,char *php_script, int validity TSRMLS_DC)
 		}
 		val = NULL;
 		if (import) {
-			gene_load_import(php_script);
+			gene_load_import(php_script TSRMLS_CC);
 		}
 	}
 }
@@ -84,7 +84,7 @@ int gene_file_modified(char *file, long ctime TSRMLS_DC)
 
 /** {{{ void gene_ini_router(TSRMLS_DC)
 */
-void gene_ini_router(TSRMLS_DC)
+void gene_ini_router(TSRMLS_D)
 {
 	zval *server = NULL,** temp;
 	if (!GENE_G(method) && !GENE_G(path)) {
@@ -282,7 +282,7 @@ PHP_METHOD(gene_application, run)
         RETURN_NULL();
     }
     if (methodin == NULL && pathin == NULL) {
-    	gene_ini_router(TSRMLS_CC);
+    	gene_ini_router(TSRMLS_C);
     }
     if (GENE_G(app_key)) {
     	MAKE_STD_ZVAL(safe);

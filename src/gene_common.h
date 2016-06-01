@@ -33,5 +33,6 @@ void replace(char originalString[], char key[], char swap[]);
 int findChildCnt(char* str1, const char* str2);
 int fullToHalf(char *sFullStr, char *sHalfStr);
 void remove_extra_space(char *str);
+char * readfilecontent(char *file);
 
 #endif

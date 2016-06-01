@@ -20,8 +20,8 @@
 
 #include "php.h"
 #include "php_ini.h"
-#include "ext/standard/info.h"
 #include "main/SAPI.h"
+#include "ext/standard/info.h"
 #include "Zend/zend_API.h"
 #include "zend_exceptions.h"
 
@@ -52,6 +52,7 @@ PHP_INI_END()
  */
 static void php_gene_init_globals()
 {
+	TSRMLS_FETCH();
 	GENE_G(directory) = NULL;
 	GENE_G(method) = NULL;
 	GENE_G(path) = NULL;
@@ -59,7 +60,7 @@ static void php_gene_init_globals()
 	GENE_G(app_key) = NULL;
 	GENE_G(cache) = NULL;
 	GENE_G(cache_easy) = NULL;
-	gene_cache_init(TSRMLS_CC);
+	gene_cache_init(TSRMLS_C);
 }
 /* }}} */
 
@@ -68,7 +69,7 @@ static void php_gene_init_globals()
 static void php_gene_init_auto_globals()
 {
 	zend_bool jit_initialization;
-
+	TSRMLS_FETCH();
 #if (PHP_MAJOR_VERSION == 5) && (PHP_MINOR_VERSION < 4)
 	jit_initialization = (PG(auto_globals_jit) && !PG(register_globals) && !PG(register_long_arrays));
 #else
@@ -80,6 +81,14 @@ static void php_gene_init_auto_globals()
 		zend_is_auto_global(ZEND_STRL("_SERVER") TSRMLS_CC);
 		zend_is_auto_global(ZEND_STRL("_REQUEST") TSRMLS_CC);
 	}
+}
+/* }}} */
+
+/** {{{ PHP_GINIT_FUNCTION
+*/
+PHP_GINIT_FUNCTION(gene)
+{
+
 }
 /* }}} */
 
@@ -210,26 +219,6 @@ zend_function_entry gene_functions[] = {
 };
 /* }}} */
 
-/*
- * {{{ gene_module_entry
- */
-zend_module_entry gene_module_entry = {
-#if ZEND_MODULE_API_NO >= 20010901
-	STANDARD_MODULE_HEADER,
-#endif
-	"gene",
-	gene_functions,
-	PHP_MINIT(gene),
-	PHP_MSHUTDOWN(gene),
-	PHP_RINIT(gene),		/* Replace with NULL if there's nothing to do at request start */
-	PHP_RSHUTDOWN(gene),	/* Replace with NULL if there's nothing to do at request end */
-	PHP_MINFO(gene),
-#if ZEND_MODULE_API_NO >= 20010901
-	PHP_GENE_VERSION,
-#endif
-	STANDARD_MODULE_PROPERTIES
-};
-/* }}} */
 
 /*
  * {{{ gene_module_entry
@@ -239,6 +228,42 @@ ZEND_GET_MODULE(gene)
 #endif
 /* }}} */
 
+/** {{{ module depends
+ */
+#if ZEND_MODULE_API_NO >= 20050922
+zend_module_dep gene_deps[] = {
+	ZEND_MOD_REQUIRED("spl")
+	ZEND_MOD_REQUIRED("pcre")
+	ZEND_MOD_OPTIONAL("session")
+	{NULL, NULL, NULL}
+};
+#endif
+/* }}} */
+
+/** {{{ gene_module_entry
+*/
+zend_module_entry gene_module_entry = {
+#if ZEND_MODULE_API_NO >= 20050922
+	STANDARD_MODULE_HEADER_EX, NULL,
+	gene_deps,
+#else
+	STANDARD_MODULE_HEADER,
+#endif
+	"gene",
+	gene_functions,
+	PHP_MINIT(gene),
+	PHP_MSHUTDOWN(gene),
+	PHP_RINIT(gene),
+	PHP_RSHUTDOWN(gene),
+	PHP_MINFO(gene),
+	PHP_GENE_VERSION,
+	PHP_MODULE_GLOBALS(gene),
+	PHP_GINIT(gene),
+	NULL,
+	NULL,
+	STANDARD_MODULE_PROPERTIES_EX
+};
+/* }}} */
 
 /*
  * Local variables:

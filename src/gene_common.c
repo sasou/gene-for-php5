@@ -18,6 +18,8 @@
 #include "config.h"
 #endif
 
+#include <stdio.h>
+#include <stdlib.h>
 #include "php.h"
 #include "string.h"
 #include "gene_common.h"
@@ -426,6 +428,21 @@ void remove_extra_space(char *str)
     if(prev && *prev && (*prev == ' ' || *prev == '\n'))
         --sp;
     *sp = 0;
+}
+
+char * readfilecontent(char *file)
+{
+	char* tmp;
+	int file_size;
+	FILE* fp;
+    fp = fopen(file , "rb");
+    fseek(fp , 0 , SEEK_END);
+    file_size = ftell(fp);
+    fseek(fp , 0 , SEEK_SET);
+    tmp = (char*) ecalloc(file_size + 1, sizeof(char));
+    fread(tmp , file_size , sizeof(char) , fp);
+    fclose(fp);
+    return tmp;
 }
 
 /*

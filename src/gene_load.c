@@ -253,7 +253,7 @@ PHP_METHOD(gene_load, autoload)
 	} else {
 		filePath_len = spprintf(&filePath, 0, "%s.php", fileNmae);
 	}
-	gene_load_import(filePath);
+	gene_load_import(filePath TSRMLS_CC);
     efree(filePath);
     RETURN_TRUE;
 }
@@ -271,7 +271,7 @@ PHP_METHOD(gene_load, import)
 		return;
 	}
 	if (php_script_len) {
-		gene_load_import(php_script);
+		gene_load_import(php_script TSRMLS_CC);
 	}
 	RETURN_ZVAL(self, 1, 0);
 }
