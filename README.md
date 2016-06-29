@@ -114,7 +114,7 @@ reg类定义了类的单例集中管理：
 安装：
 	
 	phpize
-	./configure --with-config-file-path=PATH --disable-all --enable-cli --enable-cgi --enable-gene=shared
+	./configure --with-php-config=/PATH/php-config
 	make
 	make install
 	
