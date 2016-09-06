@@ -26,6 +26,7 @@
 
 
 #include "php_gene.h"
+#include "gene_application.h"
 #include "gene_common.h"
 #include "gene_config.h"
 #include "gene_cache.h"
@@ -48,6 +49,9 @@ PHP_METHOD(gene_config, __construct)
     } else {
     	if (GENE_G(app_key)) {
     		zend_update_property_string(gene_config_ce, getThis(), GENE_CONFIG_SAFE, strlen(GENE_CONFIG_SAFE), GENE_G(app_key) TSRMLS_CC);
+    	} else {
+    		gene_ini_router(TSRMLS_C);
+    		zend_update_property_string(gene_config_ce, getThis(), GENE_CONFIG_SAFE, strlen(GENE_CONFIG_SAFE), GENE_G(directory) TSRMLS_CC);
     	}
     }
 }

@@ -36,6 +36,7 @@
 #define GENE_ROUTER_CONTENT_FA  "$funa=%s;$funa($gene_mp);"
 #define GENE_ROUTER_CONTENT_FM  "$funm=%s;$gene_mp=$funm($gene_url);"
 #define GENE_ROUTER_CONTENT_FH  "$funh=%s;$gene_h=$funh($gene_url);if(isset($gene_h) && ($gene_h == 0))return;"
+#define GENE_ROUTER_CONTENT_REG  "/[^\\,]?([\\s]*?)function[\\s]*?([\\s\\S]*?)[\\s]*?{[\\s\\S]*?(}[\\s]*?\\,|}[\\s]*?\\))/i"
 
 
 extern zend_class_entry *gene_router_ce;

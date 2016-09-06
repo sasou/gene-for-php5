@@ -34,6 +34,12 @@
 #include "gene_execute.h"
 #include "gene_cache.h"
 #include "gene_reg.h"
+#include "gene_controller.h"
+#include "gene_request.h"
+#include "gene_response.h"
+#include "gene_session.h"
+#include "gene_view.h"
+#include "gene_exception.h"
 
 
 ZEND_DECLARE_MODULE_GLOBALS(gene);
@@ -54,12 +60,16 @@ static void php_gene_init_globals()
 {
 	TSRMLS_FETCH();
 	GENE_G(directory) = NULL;
+	GENE_G(app_root) = NULL;
+	GENE_G(app_view) = NULL;
+	GENE_G(app_ext) = NULL;
 	GENE_G(method) = NULL;
 	GENE_G(path) = NULL;
 	GENE_G(router_path) = NULL;
 	GENE_G(app_key) = NULL;
 	GENE_G(cache) = NULL;
 	GENE_G(cache_easy) = NULL;
+	GENE_G(auto_load_fun) = NULL;
 	gene_cache_init(TSRMLS_C);
 }
 /* }}} */
@@ -88,7 +98,9 @@ static void php_gene_init_auto_globals()
 */
 PHP_GINIT_FUNCTION(gene)
 {
-
+	gene_globals->gene_error = 1;
+	gene_globals->gene_exception = 0;
+	gene_globals->show_exception = 0;
 }
 /* }}} */
 
@@ -107,6 +119,12 @@ PHP_MINIT_FUNCTION(gene)
 	GENE_STARTUP(router);
     GENE_STARTUP(execute);
     GENE_STARTUP(cache);
+	GENE_STARTUP(controller);
+	GENE_STARTUP(request);
+	GENE_STARTUP(response);
+	GENE_STARTUP(session);
+	GENE_STARTUP(view);
+	GENE_STARTUP(exception);
 
     return SUCCESS;
 }
@@ -124,6 +142,18 @@ PHP_MSHUTDOWN_FUNCTION(gene)
     	efree(GENE_G(directory));
     	GENE_G(directory) = NULL;
     }
+    if (GENE_G(app_root)) {
+    	efree(GENE_G(app_root));
+    	GENE_G(app_root) = NULL;
+    }
+    if (GENE_G(app_view)) {
+    	efree(GENE_G(app_view));
+    	GENE_G(app_view) = NULL;
+    }
+    if (GENE_G(app_ext)) {
+    	efree(GENE_G(app_ext));
+    	GENE_G(app_ext) = NULL;
+    }
     if (GENE_G(method)) {
     	efree(GENE_G(method));
     	GENE_G(method) = NULL;
@@ -135,6 +165,10 @@ PHP_MSHUTDOWN_FUNCTION(gene)
     if (GENE_G(router_path)) {
     	efree(GENE_G(router_path));
     	GENE_G(router_path) = NULL;
+    }
+    if (GENE_G(auto_load_fun)) {
+    	efree(GENE_G(auto_load_fun));
+    	GENE_G(auto_load_fun) = NULL;
     }
 	if (GENE_G(cache)) {
 		zend_hash_destroy(GENE_G(cache));
@@ -170,6 +204,18 @@ PHP_RSHUTDOWN_FUNCTION(gene)
     	efree(GENE_G(directory));
     	GENE_G(directory) = NULL;
     }
+    if (GENE_G(app_root)) {
+    	efree(GENE_G(app_root));
+    	GENE_G(app_root) = NULL;
+    }
+    if (GENE_G(app_view)) {
+    	efree(GENE_G(app_view));
+    	GENE_G(app_view) = NULL;
+    }
+    if (GENE_G(app_ext)) {
+    	efree(GENE_G(app_ext));
+    	GENE_G(app_ext) = NULL;
+    }
     if (GENE_G(method)) {
     	efree(GENE_G(method));
     	GENE_G(method) = NULL;
@@ -181,6 +227,10 @@ PHP_RSHUTDOWN_FUNCTION(gene)
     if (GENE_G(router_path)) {
     	efree(GENE_G(router_path));
     	GENE_G(router_path) = NULL;
+    }
+    if (GENE_G(auto_load_fun)) {
+    	efree(GENE_G(auto_load_fun));
+    	GENE_G(auto_load_fun) = NULL;
     }
     if (GENE_G(app_key)) {
     	efree(GENE_G(app_key));

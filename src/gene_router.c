@@ -24,6 +24,7 @@
 #include "Zend/zend_API.h"
 #include "Zend/zend_exceptions.h"
 #include "Zend/zend_alloc.h"
+#include "ext/pcre/php_pcre.h"
 #include "ext/reflection/php_reflection.h"
 #include "ext/spl/spl_directory.h"
 
@@ -34,6 +35,7 @@
 #include "gene_cache.h"
 #include "gene_common.h"
 #include "gene_application.h"
+#include "gene_view.h"
 
 zend_class_entry *gene_router_ce;
 
@@ -281,54 +283,6 @@ int get_router_error_run(char *errorName,zval *safe TSRMLS_DC)
 	return 1;
 }
 /* }}} */
-
-zval * request_query(int type, char * name, int len TSRMLS_DC)
-{
-	zval 	**carrier, **ret;
-
-
-	switch (type) {
-		case TRACK_VARS_POST:
-		case TRACK_VARS_GET:
-		case TRACK_VARS_FILES:
-		case TRACK_VARS_COOKIE:
-			carrier = &PG(http_globals)[type];
-			break;
-		case TRACK_VARS_ENV:
-			carrier = &PG(http_globals)[type];
-			break;
-		case TRACK_VARS_SERVER:
-			carrier = &PG(http_globals)[type];
-			break;
-		case TRACK_VARS_REQUEST:
-			(void)zend_hash_find(&EG(symbol_table), ZEND_STRS("_REQUEST"), (void **)&carrier);
-			break;
-		default:
-			break;
-	}
-
-	if (!carrier || !(*carrier)) {
-		zval *empty;
-		MAKE_STD_ZVAL(empty);
-		ZVAL_NULL(empty);
-		return empty;
-	}
-
-	if (!len) {
-		Z_ADDREF_P(*carrier);
-		return *carrier;
-	}
-
-	if (zend_hash_find(Z_ARRVAL_PP(carrier), name, len + 1, (void **)&ret) == FAILURE) {
-		zval *empty;
-		MAKE_STD_ZVAL(empty);
-		ZVAL_NULL(empty);
-		return empty;
-	}
-
-	Z_ADDREF_P(*ret);
-	return *ret;
-}
 
 
 /** {{{ static void get_function_content(char *keyString, int keyString_len TSRMLS_DC)
@@ -643,20 +597,20 @@ PHP_METHOD(gene_router, run)
     {
         RETURN_NULL();
     }
-    if (methodin == NULL && pathin == NULL) {
-    	gene_ini_router(TSRMLS_C);
-    }
+
 	safe = zend_read_property(gene_router_ce, self, GENE_ROUTER_SAFE, strlen(GENE_ROUTER_SAFE), 1 TSRMLS_CC);
-    if (safe) {
-    	MAKE_STD_ZVAL(safein);
+	MAKE_STD_ZVAL(safein);
+	if (safe && Z_STRLEN_P(safe)) {
     	ZVAL_STRING(safein,Z_STRVAL_P(safe),1);
+    } else {
+    	ZVAL_STRING(safein,"",1);
     }
 	get_router_content_run(methodin,pathin,safein TSRMLS_CC);
 	if (safein) {
 		zval_ptr_dtor(&safein);
 		safein = NULL;
 	}
-	RETURN_ZVAL(self, 1, 0);
+	RETURN_NULL();
 }
 /* }}} */
 
@@ -673,9 +627,11 @@ PHP_METHOD(gene_router, runError)
     {
         RETURN_NULL();
     }
+	MAKE_STD_ZVAL(safe);
     if (GENE_G(app_key)) {
-    	MAKE_STD_ZVAL(safe);
     	ZVAL_STRING(safe,GENE_G(app_key),1);
+    } else {
+    	ZVAL_STRING(safe,GENE_G(directory),1);
     }
 	get_router_error_run(methodin,safe TSRMLS_CC);
 	if (safe) {
@@ -697,11 +653,14 @@ PHP_METHOD(gene_router, __construct)
     {
         RETURN_NULL();
     }
+    gene_ini_router(TSRMLS_C);
     if(safe) {
     	zend_update_property_string(gene_router_ce, getThis(), GENE_ROUTER_SAFE, strlen(GENE_ROUTER_SAFE), Z_STRVAL_P(safe) TSRMLS_CC);
     } else {
     	if (GENE_G(app_key)) {
     		zend_update_property_string(gene_router_ce, getThis(), GENE_ROUTER_SAFE, strlen(GENE_ROUTER_SAFE), GENE_G(app_key) TSRMLS_CC);
+    	} else {
+    		zend_update_property_string(gene_router_ce, getThis(), GENE_ROUTER_SAFE, strlen(GENE_ROUTER_SAFE), GENE_G(directory) TSRMLS_CC);
     	}
     }
 }
@@ -1047,13 +1006,82 @@ PHP_METHOD(gene_router, getRouter)
  */
 PHP_METHOD(gene_router, readFile)
 {
-	char *fileName = NULL;
+	char *fileName = NULL,*rec = NULL;
 	int fileNameLen=0;
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"s", &fileName, &fileNameLen) == FAILURE)
     {
         RETURN_NULL();
     }
-	RETURN_STRING(readfilecontent(fileName),1);
+    rec = readfilecontent(fileName);
+    if (rec != NULL) {
+    	RETURN_STRING(rec,0);
+    }
+	RETURN_NULL();
+}
+/* }}} */
+
+static void php_free_pcre_cache(void *data) /* {{{ */
+{
+	pcre_cache_entry *pce = (pcre_cache_entry *) data;
+	if (!pce) return;
+	pefree(pce->re, 1);
+	if (pce->extra) pefree(pce->extra, 1);
+#if HAVE_SETLOCALE
+	if ((void*)pce->tables) pefree((void*)pce->tables, 1);
+	pefree(pce->locale, 1);
+#endif
+}
+/* }}} */
+
+
+/** {{{ public gene_response::display(string $file)
+*/
+PHP_METHOD(gene_router, display) {
+  char  *file;
+  int  file_len;
+
+  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|l", &file, &file_len) == FAILURE) {
+    return;
+  }
+  if (file_len) {
+	  gene_view_display(file TSRMLS_CC);
+  }
+}
+/* }}} */
+
+/*
+ * {{{ public gene_router::readFile()
+ */
+PHP_METHOD(gene_router, match)
+{
+	char *fileName = NULL,*rec = NULL;
+	int fileNameLen=0;
+	pcre_cache_entry *pce = NULL;
+	zval *result_match, *match_long,*self = getThis();
+	zval **data,*ret = NULL;
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"s", &fileName, &fileNameLen) == FAILURE)
+    {
+        RETURN_NULL();
+    }
+    rec = readfilecontent(fileName);
+    if (rec != NULL) {
+    	pce = pcre_get_compiled_regex_cache(GENE_ROUTER_CONTENT_REG, strlen(GENE_ROUTER_CONTENT_REG) TSRMLS_CC);
+    	if(pce != NULL ){
+    		MAKE_STD_ZVAL(match_long);
+    		MAKE_STD_ZVAL(result_match);
+    		array_init(result_match);
+    		php_pcre_match_impl(pce, rec, strlen(rec), match_long, result_match, 1, 0, 0, 0 TSRMLS_CC);
+			efree(rec);
+			zval_ptr_dtor(&match_long);
+			if(zend_hash_index_find(result_match->value.ht, 0, (void **)&data) == SUCCESS) {
+				ret = gene_cache_zval_losable(*data TSRMLS_CC);
+				zval_ptr_dtor(&result_match);
+				RETURN_ZVAL(ret, 1, 1);
+			}
+    	}
+    	efree(rec);
+    }
+	RETURN_ZVAL(self, 1, 0);
 }
 /* }}} */
 
@@ -1068,9 +1096,11 @@ zend_function_entry gene_router_methods[] = {
 		PHP_ME(gene_router, clear, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_router, getTime, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_router, getRouter, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(gene_router, display, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 		PHP_ME(gene_router, runError, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 		PHP_ME(gene_router, run, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_router, readFile, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(gene_router, match, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_router, __call, gene_router_call_arginfo, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_router, __construct, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
 		{NULL, NULL, NULL}
@@ -1090,6 +1120,7 @@ GENE_MINIT_FUNCTION(router)
 	//prop
     zend_declare_property_string(gene_router_ce, GENE_ROUTER_SAFE, strlen(GENE_ROUTER_SAFE), "", ZEND_ACC_PUBLIC TSRMLS_CC);
     zend_declare_property_string(gene_router_ce, GENE_ROUTER_PREFIX, strlen(GENE_ROUTER_PREFIX), "", ZEND_ACC_PUBLIC TSRMLS_CC);
+    //zend_declare_property_string(gene_router_ce, GENE_ROUTER_PREFIX, strlen(GENE_ROUTER_PREFIX), "", ZEND_ACC_PUBLIC TSRMLS_CC);
     //
 	return SUCCESS;
 }

@@ -55,6 +55,14 @@ void gene_cache_set_easy(char *keyString, int keyString_len, int time, int valid
 gene_cache_container_easy * gene_cache_get_easy(char *keyString, int keyString_len TSRMLS_DC);
 zval * gene_cache_zval_losable(zval *zvalue TSRMLS_DC);
 
+
+#define GENE_CZAL(z, v)					\
+	do {								\
+		(z)->value = (v)->value;		\
+		Z_TYPE_P(z) = Z_TYPE_P(v);		\
+	} while (0)
+
+
 GENE_MINIT_FUNCTION(cache);
 
 #endif

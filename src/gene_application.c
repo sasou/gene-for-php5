@@ -32,7 +32,9 @@
 #include "gene_cache.h"
 #include "gene_config.h"
 #include "gene_router.h"
+#include "gene_request.h"
 #include "gene_common.h"
+#include "gene_exception.h"
 
 zend_class_entry * gene_application_ce;
 
@@ -86,10 +88,13 @@ int gene_file_modified(char *file, long ctime TSRMLS_DC)
 */
 void gene_ini_router(TSRMLS_D)
 {
-	zval *server = NULL,** temp;
-	if (!GENE_G(method) && !GENE_G(path)) {
+	zval *server = NULL,** temp = NULL;
+	if (!GENE_G(method) && !GENE_G(path) && !GENE_G(directory)) {
 		server = request_query(TRACK_VARS_SERVER, NULL, 0 TSRMLS_CC);
 		if (server) {
+	    	if (zend_hash_find(HASH_OF(server), "DOCUMENT_ROOT", 14, (void **)&temp) == SUCCESS) {
+	    		GENE_G(directory) = estrndup(Z_STRVAL_PP(temp), Z_STRLEN_PP(temp));
+	    	}
 	    	if (zend_hash_find(HASH_OF(server), "REQUEST_METHOD", 15, (void **)&temp) == SUCCESS) {
 	    		GENE_G(method) = estrndup(Z_STRVAL_PP(temp), Z_STRLEN_PP(temp));
 	    		strtolower(GENE_G(method));
@@ -100,6 +105,7 @@ void gene_ini_router(TSRMLS_D)
 	    	}
 		}
 		server = NULL;
+		temp = NULL;
 	}
 }
 /* }}} */
@@ -134,9 +140,15 @@ PHP_METHOD(gene_application, __construct)
     {
         RETURN_NULL();
     }
+    gene_ini_router(TSRMLS_C);
     if (safe && !GENE_G(app_key)) {
     	GENE_G(app_key) = estrndup(Z_STRVAL_P(safe), Z_STRLEN_P(safe));
     }
+
+    if (GENE_G(directory)) {
+    	spprintf(&GENE_G(app_root), 0, "%s/app/", GENE_G(directory));
+    }
+
 }
 /* }}} */
 
@@ -155,7 +167,7 @@ PHP_METHOD(gene_application, load)
 	if (GENE_G(app_key)) {
 		router_e_len = spprintf(&router_e, 0, "%s:%s", GENE_G(app_key), php_script);
 	} else {
-		router_e_len = spprintf(&router_e, 0, ":%s", php_script);
+		router_e_len = spprintf(&router_e, 0, "%s:%s", GENE_G(directory), php_script);
 	}
 	load_file(router_e, router_e_len,php_script, validity TSRMLS_CC);
 	efree(router_e);
@@ -233,7 +245,7 @@ PHP_METHOD(gene_application, config)
 	if (GENE_G(app_key)) {
 		router_e_len = spprintf(&router_e, 0, "%s%s", GENE_G(app_key), GENE_CONFIG_CACHE);
 	} else {
-		router_e_len = spprintf(&router_e, 0, "%s", GENE_CONFIG_CACHE);
+		router_e_len = spprintf(&router_e, 0, "%s%s", GENE_G(directory), GENE_CONFIG_CACHE);
 	}
     cache = gene_cache_get_by_config(router_e, router_e_len, keyString TSRMLS_CC);
     efree(router_e);
@@ -250,21 +262,81 @@ PHP_METHOD(gene_application, config)
 PHP_METHOD(gene_application, autoload)
 {
 	int fileName_len = 0,directory_len = 0;
-	char *fileName = NULL,*directory = NULL;
+	char *fileName = NULL,*app_root = NULL;
 	zval *self = getThis();
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|ss", &directory, &directory_len, &fileName, &fileName_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|ss", &app_root, &directory_len, &fileName, &fileName_len) == FAILURE) {
 		return;
 	}
 	if (directory_len >0 ) {
-	    if (!GENE_G(directory)) {
-	    	GENE_G(directory) = estrndup(directory, directory_len);
-	    }
+	    GENE_G(app_root) = estrndup(app_root, directory_len);
 	}
 	if (fileName_len >0 ) {
-		gene_loader_register_function(fileName TSRMLS_CC);
-	} else {
-		gene_loader_register_function(NULL TSRMLS_CC);
+		GENE_G(auto_load_fun) =  estrndup(fileName, fileName_len);;
 	}
+    RETURN_ZVAL(self, 1, 0);
+}
+/* }}} */
+
+/*
+ * {{{ public gene_load::error($callback, $type)
+ */
+PHP_METHOD(gene_application, error)
+{
+	zval *callback = NULL, *error_type = NULL,*self = getThis();
+	long type = 0;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|lzz", &type, &callback, &error_type) == FAILURE) {
+		return;
+	}
+	if (type > 0) {
+		GENE_G(gene_error) = 1;
+	} else {
+		GENE_G(gene_error) = 0;
+	}
+	gene_exception_error_register(callback, error_type TSRMLS_CC);
+    RETURN_ZVAL(self, 1, 0);
+}
+/* }}} */
+
+/** {{{ public gene_exception::exception(string $callbacak[, int $error_types = E_ALL | E_STRICT ] )
+*/
+PHP_METHOD(gene_application, exception) {
+	zval *callback = NULL, *error_type = NULL,*self = getThis();
+	long type = 0;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|lzz", &type, &callback, &error_type) == FAILURE) {
+		return;
+	}
+	if (type > 0) {
+		GENE_G(gene_exception) = 1;
+	} else {
+		GENE_G(gene_exception) = 0;
+	}
+	gene_exception_register(callback, error_type TSRMLS_CC);
+	RETURN_ZVAL(self, 1, 0);
+}
+/* }}} */
+
+/*
+ * {{{ public gene_load::error($callback, $type)
+ */
+PHP_METHOD(gene_application, setMode)
+{
+	zval *self=getThis();
+	long error_type = 0,exception_type=0;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|ll", &error_type, &exception_type) == FAILURE) {
+		return;
+	}
+	if (error_type > 0) {
+		GENE_G(gene_error) = 1;
+	} else {
+		GENE_G(gene_error) = 0;
+	}
+	if (exception_type > 0) {
+		GENE_G(gene_exception) = 1;
+	} else {
+		GENE_G(gene_exception) = 0;
+	}
+	gene_exception_error_register(NULL, NULL TSRMLS_CC);
+	gene_exception_register(NULL, NULL TSRMLS_CC);
     RETURN_ZVAL(self, 1, 0);
 }
 /* }}} */
@@ -281,12 +353,14 @@ PHP_METHOD(gene_application, run)
     {
         RETURN_NULL();
     }
-    if (methodin == NULL && pathin == NULL) {
-    	gene_ini_router(TSRMLS_C);
-    }
+
+	gene_loader_register_function(NULL TSRMLS_CC);
+
+	MAKE_STD_ZVAL(safe);
     if (GENE_G(app_key)) {
-    	MAKE_STD_ZVAL(safe);
     	ZVAL_STRING(safe,GENE_G(app_key),1);
+    } else {
+    	ZVAL_STRING(safe,GENE_G(directory),1);
     }
 
 	get_router_content_run(methodin,pathin,safe TSRMLS_CC);
@@ -304,6 +378,9 @@ PHP_METHOD(gene_application, run)
 zend_function_entry gene_application_methods[] = {
 		PHP_ME(gene_application, load, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_application, autoload, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(gene_application, setMode, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(gene_application, error, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(gene_application, exception, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_application, run, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_application, urlParams, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 		PHP_ME(gene_application, getMethod, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)

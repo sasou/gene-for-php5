@@ -157,16 +157,17 @@ int gene_loader_register(zval *loader,char *methodName TSRMLS_DC) {
 
 /** {{{ int gene_loader_register_function(char *methodName TSRMLS_DC)
 */
-int gene_loader_register_function(char *methodName TSRMLS_DC) {
+int gene_loader_register_function(TSRMLS_DC) {
 	zval *method, *function, *ret = NULL;
 	zval **params[1] = {&method};
 
 	MAKE_STD_ZVAL(method);
-	if (methodName) {
-		ZVAL_STRING(method, methodName, 1);
+	if (GENE_G(auto_load_fun)) {
+		ZVAL_STRING(method, GENE_G(auto_load_fun), 1);
 	} else {
 		ZVAL_STRING(method, GENE_AUTOLOAD_FUNC_NAME, 1);
 	}
+
 	MAKE_STD_ZVAL(function);
 	ZVAL_STRING(function, GENE_SPL_AUTOLOAD_REGISTER_NAME, 0);
 
@@ -189,7 +190,7 @@ int gene_loader_register_function(char *methodName TSRMLS_DC) {
 			}
 			efree(function);
 			zval_ptr_dtor(&method);
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to register autoload function %s", methodName);
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to register autoload function %s", GENE_G(auto_load_fun));
 			return 0;
 		}
 
@@ -249,7 +250,7 @@ PHP_METHOD(gene_load, autoload)
 	}
 	replaceAll(fileNmae,'_','/');
 	if (GENE_G(directory)) {
-		filePath_len = spprintf(&filePath, 0, "%s%s.php", GENE_G(directory), fileNmae);
+		filePath_len = spprintf(&filePath, 0, "%s%s.php", GENE_G(app_root), fileNmae);
 	} else {
 		filePath_len = spprintf(&filePath, 0, "%s.php", fileNmae);
 	}

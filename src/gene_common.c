@@ -430,18 +430,20 @@ void remove_extra_space(char *str)
     *sp = 0;
 }
 
-char * readfilecontent(char *file)
+char *readfilecontent(char *file)
 {
-	char* tmp;
-	int file_size;
-	FILE* fp;
-    fp = fopen(file , "rb");
-    fseek(fp , 0 , SEEK_END);
-    file_size = ftell(fp);
-    fseek(fp , 0 , SEEK_SET);
-    tmp = (char*) ecalloc(file_size + 1, sizeof(char));
-    fread(tmp , file_size , sizeof(char) , fp);
-    fclose(fp);
+	char *tmp = NULL;
+	int file_size = 0;
+	FILE *fp = NULL;
+    fp = fopen(file, "rb");
+    if (fp != NULL) {
+        fseek(fp , 0 , SEEK_END);
+        file_size = ftell(fp);
+        fseek(fp , 0 , SEEK_SET);
+        tmp = (char*) ecalloc(file_size + 1, sizeof(char));
+        fread(tmp , file_size , sizeof(char) , fp);
+        fclose(fp);
+    }
     return tmp;
 }
 

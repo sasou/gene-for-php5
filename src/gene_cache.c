@@ -26,6 +26,7 @@
 
 
 #include "php_gene.h"
+#include "gene_application.h"
 #include "gene_cache.h"
 #include "gene_common.h"
 
@@ -194,7 +195,7 @@ static zval * gene_cache_zval_persistent(zval *zvalue TSRMLS_DC) {
 	zval *ret = (zval *) pemalloc(sizeof(zval),1);
 	INIT_PZVAL(ret);
 	if (zvalue) {
-		ZVAL_COPY_VALUE(ret,zvalue);
+		GENE_CZAL(ret,zvalue);
 		switch (ret->type) {
 			case IS_OBJECT:
 				break;
@@ -723,6 +724,9 @@ PHP_METHOD(gene_cache, __construct)
     } else {
     	if (GENE_G(app_key)) {
     		zend_update_property_string(gene_cache_ce, getThis(), GENE_CACHE_SAFE, strlen(GENE_CACHE_SAFE), GENE_G(app_key) TSRMLS_CC);
+    	} else {
+    		gene_ini_router(TSRMLS_C);
+    		zend_update_property_string(gene_cache_ce, getThis(), GENE_CACHE_SAFE, strlen(GENE_CACHE_SAFE), GENE_G(directory) TSRMLS_CC);
     	}
     }
 }
