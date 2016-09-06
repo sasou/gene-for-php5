@@ -114,7 +114,7 @@ reg类定义了类的单例集中管理：
 安装：
 	
 	phpize
-	./configure --with-config-file-path=PATH --disable-all --enable-cli --enable-cgi --enable-gene=shared
+	./configure --with-php-config=/PATH/php-config
 	make
 	make install
 	
@@ -134,3 +134,7 @@ DEMO：
 	http://php-gene.com/demo/admin/demo.jpg
 	http://php-gene.com/demo/admin/ajax.js
 	http://php-gene.com/demo/admin/blog/test/baidu
+
+案例：
+        湖北省教育用户认证中心(全省几百万学生、教育用户的登录入口)
+        http://open.e21.cn/
