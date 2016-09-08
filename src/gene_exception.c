@@ -42,7 +42,11 @@ int gene_exception_error_register(zval *callback,zval *error_type TSRMLS_DC) {
 
 	if (!callback) {
 		MAKE_STD_ZVAL(callback);
-		ZVAL_STRING(callback, GENE_ERROR_FUNC_NAME, 1);
+		if (GENE_G(use_namespace)) {
+			ZVAL_STRING(callback, GENE_ERROR_FUNC_NAME_NS, 1);
+		} else {
+			ZVAL_STRING(callback, GENE_ERROR_FUNC_NAME, 1);
+		}
 	}
 	params[0] = callback;
 	if (error_type) {
@@ -75,7 +79,12 @@ int gene_exception_register(zval *callback,zval *error_type TSRMLS_DC) {
 
 	if (!callback) {
 		MAKE_STD_ZVAL(callback);
-		ZVAL_STRING(callback, GENE_EXCEPTION_FUNC_NAME, 1);
+		if (GENE_G(use_namespace)) {
+			ZVAL_STRING(callback, GENE_EXCEPTION_FUNC_NAME_NS, 1);
+		} else {
+			ZVAL_STRING(callback, GENE_EXCEPTION_FUNC_NAME, 1);
+		}
+
 	}
 	params[0] = callback;
 	if (error_type) {
@@ -271,7 +280,7 @@ zend_function_entry gene_exception_methods[] = {
 GENE_MINIT_FUNCTION(exception)
 {
     zend_class_entry gene_exception;
-    INIT_CLASS_ENTRY(gene_exception,"gene_exception",gene_exception_methods);
+    GENE_INIT_CLASS_ENTRY(gene_exception, "gene_exception",  "gene\\exception", gene_exception_methods);
     gene_exception_ce = zend_register_internal_class_ex(&gene_exception, gene_get_exception_base(0 TSRMLS_CC), NULL TSRMLS_CC);
 
 	//debug

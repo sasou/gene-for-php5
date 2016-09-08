@@ -30,6 +30,7 @@ extern zend_module_entry gene_module_entry;
 #	define PHP_GENE_API
 #endif
 
+
 #ifdef ZTS
 #include "TSRM.h"
 #endif
@@ -40,6 +41,12 @@ extern zend_module_entry gene_module_entry;
 #define GENE_G(v) (gene_globals.v)
 #endif
 
+#define GENE_INIT_CLASS_ENTRY(ce, common_name, namespace_name, methods) \
+	if(GENE_G(use_namespace)) { \
+		INIT_CLASS_ENTRY(ce, namespace_name, methods); \
+	} else { \
+		INIT_CLASS_ENTRY(ce, common_name, methods); \
+	}
 #define GENE_MINIT_FUNCTION(module)   	    ZEND_MINIT_FUNCTION(gene_##module)
 #define GENE_MSHUTDOWN_FUNCTION(module)   	ZEND_MSHUTDOWN_FUNCTION(gene_##module)
 #define GENE_RINIT_FUNCTION(module)   	    ZEND_RINIT_FUNCTION(gene_##module)
@@ -66,6 +73,7 @@ ZEND_BEGIN_MODULE_GLOBALS(gene)
 	char 		*router_path;
 	char 		*app_key;
 	char 		*auto_load_fun;
+	zend_bool   use_namespace;
     zend_bool   gene_error;
     zend_bool   gene_exception;
     zend_bool   show_exception;

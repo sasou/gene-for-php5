@@ -84,9 +84,9 @@ int gene_file_modified(char *file, long ctime TSRMLS_DC)
 /* }}} */
 
 
-/** {{{ void gene_ini_router(TSRMLS_DC)
+/** {{{ int gene_ini_router(TSRMLS_DC)
 */
-void gene_ini_router(TSRMLS_D)
+int gene_ini_router(TSRMLS_D)
 {
 	zval *server = NULL,** temp = NULL;
 	if (!GENE_G(method) && !GENE_G(path) && !GENE_G(directory)) {
@@ -107,6 +107,7 @@ void gene_ini_router(TSRMLS_D)
 		server = NULL;
 		temp = NULL;
 	}
+	return 1;
 }
 /* }}} */
 
@@ -159,18 +160,18 @@ PHP_METHOD(gene_application, __construct)
 PHP_METHOD(gene_application, load)
 {
 	zval *self = getThis();
-	char *php_script,*router_e;
-	int php_script_len = 0,validity = 10,router_e_len;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|sl", &php_script, &php_script_len, &validity) == FAILURE) {
+	char *file,*path,*cache_key;
+	int file_len = 0,path_len = 0,validity = 10,cache_key_len;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|ssl", &file, &file_len, &path, &path_len, &validity) == FAILURE) {
 		return;
 	}
-	if (GENE_G(app_key)) {
-		router_e_len = spprintf(&router_e, 0, "%s:%s", GENE_G(app_key), php_script);
+	if (path_len > 0) {
+		cache_key_len = spprintf(&cache_key, 0, "%s/%s", path, file);
 	} else {
-		router_e_len = spprintf(&router_e, 0, "%s:%s", GENE_G(directory), php_script);
+		cache_key_len = spprintf(&cache_key, 0, "%sConfig/%s", GENE_G(app_root), file);
 	}
-	load_file(router_e, router_e_len,php_script, validity TSRMLS_CC);
-	efree(router_e);
+	load_file(cache_key, cache_key_len, cache_key, validity TSRMLS_CC);
+	efree(cache_key);
 	RETURN_ZVAL(self, 1, 0);
 }
 /* }}} */
@@ -399,7 +400,7 @@ zend_function_entry gene_application_methods[] = {
 GENE_MINIT_FUNCTION(application)
 {
     zend_class_entry gene_application;
-    INIT_CLASS_ENTRY(gene_application,"gene_application",gene_application_methods);
+    GENE_INIT_CLASS_ENTRY(gene_application, "gene_application",  "gene\\application", gene_application_methods);
     gene_application_ce = zend_register_internal_class(&gene_application TSRMLS_CC);
 
 	return SUCCESS;

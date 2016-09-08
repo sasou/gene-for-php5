@@ -30,6 +30,7 @@
 #include "gene_request.h"
 #include "gene_response.h"
 #include "gene_cache.h"
+#include "gene_router.h"
 #include "gene_view.h"
 
 
@@ -53,6 +54,7 @@ PHP_METHOD(gene_controller, __construct)
         RETURN_NULL();
     }
     gene_ini_router(TSRMLS_C);
+    RETURN_NULL();
 }
 /* }}} */
 
@@ -247,7 +249,7 @@ zend_function_entry gene_controller_methods[] = {
 GENE_MINIT_FUNCTION(controller)
 {
     zend_class_entry gene_controller;
-    INIT_CLASS_ENTRY(gene_controller,"gene_controller",gene_controller_methods);
+    GENE_INIT_CLASS_ENTRY(gene_controller, "gene_controller",  "gene\\controller", gene_controller_methods);
     gene_controller_ce = zend_register_internal_class(&gene_controller TSRMLS_CC);
 
 	//debug

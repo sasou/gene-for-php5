@@ -878,7 +878,7 @@ zend_function_entry gene_cache_methods[] = {
 GENE_MINIT_FUNCTION(cache)
 {
     zend_class_entry gene_cache;
-    INIT_CLASS_ENTRY(gene_cache,"gene_cache",gene_cache_methods);
+    GENE_INIT_CLASS_ENTRY(gene_cache, "gene_cache",  "gene\\cache", gene_cache_methods);
     gene_cache_ce = zend_register_internal_class(&gene_cache TSRMLS_CC);
 
 	//debug

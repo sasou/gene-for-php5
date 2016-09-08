@@ -1114,7 +1114,7 @@ zend_function_entry gene_router_methods[] = {
 GENE_MINIT_FUNCTION(router)
 {
     zend_class_entry gene_router;
-    INIT_CLASS_ENTRY(gene_router,"gene_router",gene_router_methods);
+    GENE_INIT_CLASS_ENTRY(gene_router, "gene_router",  "gene\\router", gene_router_methods);
     gene_router_ce = zend_register_internal_class(&gene_router TSRMLS_CC);
 
 	//prop

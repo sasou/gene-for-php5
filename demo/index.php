@@ -8,8 +8,8 @@ $app = new gene_application();
 $app
 ->load("router.ini.php")
 ->load("config.ini.php")
-->run()
-;
+->setMode(1,1)
+->run();
 
 $etime=microtime(true);
 $total=$etime-$stime;

@@ -97,7 +97,7 @@ zend_function_entry gene_view_methods[] = {
 GENE_MINIT_FUNCTION(view)
 {
     zend_class_entry gene_view;
-    INIT_CLASS_ENTRY(gene_view,"gene_view",gene_view_methods);
+    GENE_INIT_CLASS_ENTRY(gene_view, "gene_view",  "gene\\view", gene_view_methods);
     gene_view_ce = zend_register_internal_class(&gene_view TSRMLS_CC);
 
     //

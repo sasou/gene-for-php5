@@ -113,7 +113,11 @@ int gene_loader_register(zval *loader,char *methodName TSRMLS_DC) {
 	if (methodName) {
 		ZVAL_STRING(method, methodName, 1);
 	} else {
-		ZVAL_STRING(method, GENE_AUTOLOAD_FUNC_NAME, 1);
+		if (GENE_G(use_namespace)) {
+			ZVAL_STRING(method, GENE_AUTOLOAD_FUNC_NAME_NS, 1);
+		} else {
+			ZVAL_STRING(method, GENE_AUTOLOAD_FUNC_NAME, 1);
+		}
 	}
 
 	zend_hash_next_index_insert(Z_ARRVAL_P(autoload), &loader, sizeof(zval *), NULL);
@@ -165,7 +169,11 @@ int gene_loader_register_function(TSRMLS_DC) {
 	if (GENE_G(auto_load_fun)) {
 		ZVAL_STRING(method, GENE_G(auto_load_fun), 1);
 	} else {
-		ZVAL_STRING(method, GENE_AUTOLOAD_FUNC_NAME, 1);
+		if (GENE_G(use_namespace)) {
+			ZVAL_STRING(method, GENE_AUTOLOAD_FUNC_NAME_NS, 1);
+		} else {
+			ZVAL_STRING(method, GENE_AUTOLOAD_FUNC_NAME, 1);
+		}
 	}
 
 	MAKE_STD_ZVAL(function);
@@ -248,7 +256,12 @@ PHP_METHOD(gene_load, autoload)
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &fileNmae, &fileNmae_len) == FAILURE) {
 		return;
 	}
-	replaceAll(fileNmae,'_','/');
+	if (GENE_G(use_namespace)) {
+		replaceAll(fileNmae,'\\','/');
+	} else {
+		replaceAll(fileNmae,'_','/');
+	}
+
 	if (GENE_G(directory)) {
 		filePath_len = spprintf(&filePath, 0, "%s%s.php", GENE_G(app_root), fileNmae);
 	} else {
@@ -308,7 +321,7 @@ zend_function_entry gene_load_methods[] = {
 GENE_MINIT_FUNCTION(load)
 {
     zend_class_entry gene_load;
-    INIT_CLASS_ENTRY(gene_load,"gene_load",gene_load_methods);
+    GENE_INIT_CLASS_ENTRY(gene_load, "gene_load",  "gene\\load", gene_load_methods);
     gene_load_ce = zend_register_internal_class(&gene_load TSRMLS_CC);
 
 	//static

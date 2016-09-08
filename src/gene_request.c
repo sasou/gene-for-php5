@@ -249,7 +249,7 @@ zend_function_entry gene_request_methods[] = {
 GENE_MINIT_FUNCTION(request)
 {
     zend_class_entry gene_request;
-    INIT_CLASS_ENTRY(gene_request,"gene_request",gene_request_methods);
+    GENE_INIT_CLASS_ENTRY(gene_request, "gene_request",  "gene\\request", gene_request_methods);
     gene_request_ce = zend_register_internal_class(&gene_request TSRMLS_CC);
 
 	//debug

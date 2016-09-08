@@ -44,15 +44,13 @@
 
 ZEND_DECLARE_MODULE_GLOBALS(gene);
 
-/* {{{ PHP_INI
+/** {{{ PHP_INI
  */
-/* Remove comments and fill if you need to have entries in php.ini
 PHP_INI_BEGIN()
-    STD_PHP_INI_ENTRY("gene.global_value",      "42", PHP_INI_ALL, OnUpdateLong, global_value, zend_gene_globals, gene_globals)
-    STD_PHP_INI_ENTRY("gene.global_string", "foobar", PHP_INI_ALL, OnUpdateString, global_string, zend_gene_globals, gene_globals)
-PHP_INI_END()
-*/
+	STD_PHP_INI_BOOLEAN("gene.namespace",   	"0", PHP_INI_SYSTEM, OnUpdateBool, use_namespace, zend_gene_globals, gene_globals)
+PHP_INI_END();
 /* }}} */
+
 
 /* {{{ php_gene_init_globals
  */
@@ -110,6 +108,7 @@ PHP_GINIT_FUNCTION(gene)
 PHP_MINIT_FUNCTION(gene)
 {
 	php_gene_init_globals();
+	REGISTER_INI_ENTRIES();
 
 	/* startup components */
 	GENE_STARTUP(application);
@@ -260,12 +259,27 @@ PHP_MINFO_FUNCTION(gene)
 /* }}} */
 
 
+PHP_FUNCTION(gene_urlParams){
+	zval *cache = NULL;
+	int keyString_len;
+	char *keyString = NULL;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &keyString, &keyString_len) == FAILURE) {
+		return;
+	}
+    cache = gene_cache_get_by_config(PHP_GENE_URL_PARAMS, strlen(PHP_GENE_URL_PARAMS), keyString TSRMLS_CC);
+    if (cache) {
+    	RETURN_ZVAL(cache, 1, 1);
+    }
+	RETURN_NULL();
+}
+
 /* {{{ gene_functions[]
  *
  * Every user visible function must have an entry in gene_functions[].
  */
 zend_function_entry gene_functions[] = {
-	{NULL, NULL, NULL}
+	PHP_FE(gene_urlParams,NULL)
+	PHP_FE_END
 };
 /* }}} */
 
