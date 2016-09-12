@@ -84,9 +84,9 @@ int gene_file_modified(char *file, long ctime TSRMLS_DC)
 /* }}} */
 
 
-/** {{{ int gene_ini_router(TSRMLS_DC)
+/** {{{ void gene_ini_router(TSRMLS_DC)
 */
-int gene_ini_router(TSRMLS_D)
+void gene_ini_router(TSRMLS_D)
 {
 	zval *server = NULL,** temp = NULL;
 	if (!GENE_G(method) && !GENE_G(path) && !GENE_G(directory)) {
@@ -107,11 +107,10 @@ int gene_ini_router(TSRMLS_D)
 		server = NULL;
 		temp = NULL;
 	}
-	return 1;
 }
 /* }}} */
 
-/** {{{ void gene_ini_router(TSRMLS_DC)
+/** {{{ void gene_router_set_uri(zval **leaf TSRMLS_DC)
 */
 void gene_router_set_uri(zval **leaf TSRMLS_DC)
 {
@@ -343,6 +342,27 @@ PHP_METHOD(gene_application, setMode)
 /* }}} */
 
 /*
+ * {{{ public gene_application::setView($view, $ext)
+ */
+PHP_METHOD(gene_application, setView)
+{
+	zval *self=getThis();
+	char *view,*tpl;
+	long view_len = 0,tpl_len=0;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|ss", &view, &view_len, &tpl, &tpl_len) == FAILURE) {
+		return;
+	}
+	if (view_len > 0) {
+		GENE_G(app_view) = estrndup(view, view_len);
+	}
+	if (tpl_len > 0) {
+		GENE_G(app_ext) = estrndup(tpl, tpl_len);
+	}
+    RETURN_ZVAL(self, 1, 0);
+}
+/* }}} */
+
+/*
  * {{{ public gene_application::run($method,$path)
  */
 PHP_METHOD(gene_application, run)
@@ -380,6 +400,7 @@ zend_function_entry gene_application_methods[] = {
 		PHP_ME(gene_application, load, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_application, autoload, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_application, setMode, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(gene_application, setView, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_application, error, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_application, exception, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_application, run, NULL, ZEND_ACC_PUBLIC)

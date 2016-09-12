@@ -73,10 +73,12 @@ ZEND_BEGIN_MODULE_GLOBALS(gene)
 	char 		*router_path;
 	char 		*app_key;
 	char 		*auto_load_fun;
+	char 		*child_views;
 	zend_bool   use_namespace;
     zend_bool   gene_error;
     zend_bool   gene_exception;
     zend_bool   show_exception;
+    zend_bool   view_compile;
 	HashTable	*cache;
 	HashTable	*cache_easy;
 ZEND_END_MODULE_GLOBALS(gene)

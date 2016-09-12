@@ -48,6 +48,7 @@ ZEND_DECLARE_MODULE_GLOBALS(gene);
  */
 PHP_INI_BEGIN()
 	STD_PHP_INI_BOOLEAN("gene.namespace",   	"0", PHP_INI_SYSTEM, OnUpdateBool, use_namespace, zend_gene_globals, gene_globals)
+	STD_PHP_INI_BOOLEAN("gene.viewCompile",   	"0", PHP_INI_SYSTEM, OnUpdateBool, view_compile, zend_gene_globals, gene_globals)
 PHP_INI_END();
 /* }}} */
 
@@ -68,6 +69,7 @@ static void php_gene_init_globals()
 	GENE_G(cache) = NULL;
 	GENE_G(cache_easy) = NULL;
 	GENE_G(auto_load_fun) = NULL;
+	GENE_G(child_views) = NULL;
 	gene_cache_init(TSRMLS_C);
 }
 /* }}} */
@@ -99,6 +101,7 @@ PHP_GINIT_FUNCTION(gene)
 	gene_globals->gene_error = 1;
 	gene_globals->gene_exception = 0;
 	gene_globals->show_exception = 0;
+	gene_globals->view_compile = 0;
 }
 /* }}} */
 
@@ -169,6 +172,10 @@ PHP_MSHUTDOWN_FUNCTION(gene)
     	efree(GENE_G(auto_load_fun));
     	GENE_G(auto_load_fun) = NULL;
     }
+    if (GENE_G(child_views)) {
+    	efree(GENE_G(child_views));
+    	GENE_G(child_views) = NULL;
+    }
 	if (GENE_G(cache)) {
 		zend_hash_destroy(GENE_G(cache));
 		pefree(GENE_G(cache), 1);
@@ -230,6 +237,10 @@ PHP_RSHUTDOWN_FUNCTION(gene)
     if (GENE_G(auto_load_fun)) {
     	efree(GENE_G(auto_load_fun));
     	GENE_G(auto_load_fun) = NULL;
+    }
+    if (GENE_G(child_views)) {
+    	efree(GENE_G(child_views));
+    	GENE_G(child_views) = NULL;
     }
     if (GENE_G(app_key)) {
     	efree(GENE_G(app_key));

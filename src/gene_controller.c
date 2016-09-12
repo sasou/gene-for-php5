@@ -26,6 +26,7 @@
 
 
 #include "php_gene.h"
+#include "gene_application.h"
 #include "gene_controller.h"
 #include "gene_request.h"
 #include "gene_response.h"
@@ -48,8 +49,8 @@ ZEND_END_ARG_INFO()
  */
 PHP_METHOD(gene_controller, __construct)
 {
-	long debug = 0;
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"|l", &debug) == FAILURE)
+	int debug = 0;
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l", &debug) == FAILURE)
     {
         RETURN_NULL();
     }
@@ -198,13 +199,13 @@ PHP_METHOD(gene_controller, redirect) {
 /* }}} */
 
 
-/** {{{ public gene_response::display(string $file)
+/** {{{ public gene_controller::display(string $file)
 */
 PHP_METHOD(gene_controller, display) {
   char  *file;
   int  file_len;
 
-  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|l", &file, &file_len) == FAILURE) {
+  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &file, &file_len) == FAILURE) {
     return;
   }
   if (file_len) {
@@ -213,6 +214,32 @@ PHP_METHOD(gene_controller, display) {
 }
 /* }}} */
 
+
+/** {{{ public gene_controller::display(string $file)
+*/
+PHP_METHOD(gene_controller, displayExt) {
+  char  *file,*parent_file = NULL;
+  int  file_len = 0,parent_file_len = 0;
+  zend_bool isCompile=0;
+
+  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|sb", &file, &file_len, &parent_file, &parent_file_len, &isCompile) == FAILURE) {
+	  return;
+  }
+  if (parent_file_len) {
+	  GENE_G(child_views) = estrndup(file, file_len);
+	  gene_view_display_ext(parent_file, isCompile TSRMLS_CC);
+  } else {
+	  gene_view_display_ext(file , isCompile TSRMLS_CC);
+  }
+}
+/* }}} */
+
+/** {{{ public gene_controller::contains(string $file)
+*/
+PHP_METHOD(gene_controller, contains) {
+	gene_view_display_ext(GENE_G(child_views) , 0 TSRMLS_CC);
+}
+/* }}} */
 
 /*
  * {{{ gene_controller_methods
@@ -237,6 +264,8 @@ zend_function_entry gene_controller_methods[] = {
 		PHP_ME(gene_controller, isCli, gene_controller_void_arginfo, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 		PHP_ME(gene_controller, redirect, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_controller, display, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(gene_controller, displayExt, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(gene_controller, contains, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 		PHP_ME(gene_controller, __construct, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
 		{NULL, NULL, NULL}
 };

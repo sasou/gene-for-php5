@@ -18,11 +18,15 @@
 #define GENE_VIEW_H
 #define GENE_VIEW_VIEW	"Views"
 #define GENE_VIEW_EXT ".php"
-
+#define PARSER_NUMS 27
 
 extern zend_class_entry *gene_view_ce;
 
 int gene_view_display(char *file TSRMLS_DC);
+static int check_folder_exists(char *fullpath);
+int gene_view_display_ext(char *file ,zend_bool isCompile TSRMLS_DC);
+static int parser_templates(php_stream *stream, char *compile_path);
+static int check_folder_exists(char *fullpath);
 
 GENE_MINIT_FUNCTION(view);
 

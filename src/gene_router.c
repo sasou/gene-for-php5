@@ -1034,7 +1034,7 @@ static void php_free_pcre_cache(void *data) /* {{{ */
 /* }}} */
 
 
-/** {{{ public gene_response::display(string $file)
+/** {{{ public gene_router::display(string $file)
 */
 PHP_METHOD(gene_router, display) {
   char  *file;
@@ -1046,6 +1046,25 @@ PHP_METHOD(gene_router, display) {
   if (file_len) {
 	  gene_view_display(file TSRMLS_CC);
   }
+}
+/* }}} */
+
+/** {{{ public gene_router::display(string $file)
+*/
+PHP_METHOD(gene_router, displayExt) {
+	char  *file,*parent_file = NULL;
+	int  file_len = 0,parent_file_len = 0;
+	zend_bool isCompile=0;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|sb", &file, &file_len, &parent_file, &parent_file_len, &isCompile) == FAILURE) {
+	  return;
+	}
+	if (parent_file_len) {
+	  GENE_G(child_views) = estrndup(file, file_len);
+	  gene_view_display_ext(parent_file, isCompile TSRMLS_CC);
+	} else {
+	  gene_view_display_ext(file , isCompile TSRMLS_CC);
+	}
 }
 /* }}} */
 
@@ -1097,6 +1116,7 @@ zend_function_entry gene_router_methods[] = {
 		PHP_ME(gene_router, getTime, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_router, getRouter, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_router, display, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+		PHP_ME(gene_router, displayExt, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 		PHP_ME(gene_router, runError, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 		PHP_ME(gene_router, run, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(gene_router, readFile, NULL, ZEND_ACC_PUBLIC)

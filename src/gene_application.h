@@ -22,7 +22,7 @@ extern zend_class_entry *gene_application_ce;
 
 void load_file(char *key, int key_len,char *php_script, int validity TSRMLS_DC);
 int gene_file_modified(char *file, long ctime TSRMLS_DC);
-int gene_ini_router(TSRMLS_D);
+void gene_ini_router(TSRMLS_D);
 void gene_router_set_uri(zval **leaf TSRMLS_DC);
 
 GENE_MINIT_FUNCTION(application);
