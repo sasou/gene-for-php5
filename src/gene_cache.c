@@ -546,6 +546,7 @@ zval * gene_cache_get_by_config(char *keyString, int keyString_len,char *path TS
 				tmp = NULL;
 				return gene_cache_zval_losable(*ret TSRMLS_CC);
 			}
+			return NULL;
 		}
 		return gene_cache_zval_losable(tmp TSRMLS_CC);
 

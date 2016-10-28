@@ -231,12 +231,26 @@ int findChildCnt(char* str1,const char* str2)
  */
 int findChildC(char* src,const char car)
 {
+	char *h = src;
 	int num = 0;
-	while(*src!='\0'){
-		if(*src==car) num++;
-		src++;
+	while(*h!='\0'){
+		if(*h==car) num++;
+		h++;
 	}
 	return num;
+}
+/* }}} */
+
+/*
+ * {{{ char * charIfFirst(char * src,const char oldChar)
+ */
+int charIfFirst(char *src,const char car)
+{
+	char *h = src;
+	if(h[0] == car) {
+		return 1;
+	}
+	return 0;
 }
 /* }}} */
 
@@ -246,8 +260,9 @@ int findChildC(char* src,const char car)
 char * replace_string (char * string, char source, const char * destination )
 {
 	char *sk = NULL,*newstr,*ptr;
-	size_t size,newsize,num = 0;
+	int size,newsize,num = 0,isFirst;
 	num = findChildC(string, source);
+	isFirst = charIfFirst(string, ':');
 	if (num == 0) return NULL;
 	newsize = strlen(string)+(strlen(destination) - 1 )*num+1;
 	newstr = (char *) ecalloc(newsize,sizeof(char));
@@ -256,9 +271,16 @@ char * replace_string (char * string, char source, const char * destination )
 	size = 0;
 	while (sk != NULL)
 	{
-		strcat(newstr,sk);
-		if (size<num) {
-			strcat(newstr,destination);
+		if((size == 0) && (isFirst == 1)) {
+			if (size<num) {
+				strcat(newstr,destination);
+			}
+			strcat(newstr,sk);
+		} else {
+			strcat(newstr,sk);
+			if (size<num) {
+				strcat(newstr,destination);
+			}
 		}
 		sk = php_strtok_r(NULL, ":", &ptr);
 		size++;

@@ -20,6 +20,9 @@
 #define GENE_REQUEST_IS_METHOD(ce, x) \
 PHP_METHOD(ce, is##x) {\
 	zval *me;\
+	if (!GENE_G(method)) { \
+		RETURN_FALSE; \
+	} \
 	MAKE_STD_ZVAL(me);\
 	ZVAL_STRING(me, GENE_G(method), 1);\
 	if (strncasecmp(#x, Z_STRVAL_P(me), Z_STRLEN_P(me)) == 0) { \

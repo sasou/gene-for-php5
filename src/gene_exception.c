@@ -231,15 +231,13 @@ PHP_METHOD(gene_exception, doError)
  */
 PHP_METHOD(gene_exception, doException)
 {
-	zval *e = NULL,*safe = NULL,*ec;
+	zval *e = NULL,*safe = NULL;
 	char *run = NULL;
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"z", &e) == FAILURE)
     {
         RETURN_NULL();
     }
-    MAKE_STD_ZVAL(ec);
-    ZVAL_COPY_VALUE(ec, e);
-	ZEND_SET_SYMBOL(EG(active_symbol_table), "e", ec);
+    zend_update_static_property(gene_exception_ce, GENE_EXCEPTION_EX, strlen(GENE_EXCEPTION_EX), e);
     if (GENE_G(gene_exception) == 1) {
     	gene_view_display("error");
     } else {
@@ -259,6 +257,15 @@ PHP_METHOD(gene_exception, doException)
 }
 /* }}} */
 
+/*
+ * {{{ gene_exception::doException
+ */
+PHP_METHOD(gene_exception, getEx)
+{
+	zval *ex = zend_read_static_property(gene_exception_ce, GENE_EXCEPTION_EX, strlen(GENE_EXCEPTION_EX), 1);
+	RETURN_ZVAL(ex, 1, 0);
+}
+/* }}} */
 
 /*
  * {{{ gene_exception_methods
@@ -268,6 +275,7 @@ zend_function_entry gene_exception_methods[] = {
 		PHP_ME(gene_exception, setExceptionHandler, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 		PHP_ME(gene_exception, doError, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 		PHP_ME(gene_exception, doException, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+		PHP_ME(gene_exception, getEx, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 		PHP_ME(gene_exception, __construct, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
 		{NULL, NULL, NULL}
 };
@@ -283,8 +291,8 @@ GENE_MINIT_FUNCTION(exception)
     GENE_INIT_CLASS_ENTRY(gene_exception, "gene_exception",  "gene\\exception", gene_exception_methods);
     gene_exception_ce = zend_register_internal_class_ex(&gene_exception, gene_get_exception_base(0 TSRMLS_CC), NULL TSRMLS_CC);
 
-	//debug
-    //zend_declare_property_null(gene_exception_ce, GENE_EXECUTE_DEBUG, strlen(GENE_EXECUTE_DEBUG), ZEND_ACC_PUBLIC TSRMLS_CC);
+	//prop
+    zend_declare_property_null(gene_exception_ce, GENE_EXCEPTION_EX, strlen(GENE_EXCEPTION_EX),  ZEND_ACC_PROTECTED|ZEND_ACC_STATIC);
     //
 	return SUCCESS;
 }

@@ -40,8 +40,6 @@ ZEND_END_ARG_INFO()
 zval * request_query(int type, char * name, int len TSRMLS_DC)
 {
 	zval 	**carrier, **ret;
-
-
 	switch (type) {
 		case TRACK_VARS_POST:
 		case TRACK_VARS_GET:

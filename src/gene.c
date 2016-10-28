@@ -100,7 +100,8 @@ PHP_GINIT_FUNCTION(gene)
 {
 	gene_globals->gene_error = 1;
 	gene_globals->gene_exception = 0;
-	gene_globals->show_exception = 0;
+	gene_globals->show_exception = 1;
+	gene_globals->use_namespace = 1;
 	gene_globals->view_compile = 0;
 }
 /* }}} */

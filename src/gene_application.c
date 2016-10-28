@@ -33,6 +33,7 @@
 #include "gene_config.h"
 #include "gene_router.h"
 #include "gene_request.h"
+#include "gene_view.h"
 #include "gene_common.h"
 #include "gene_exception.h"
 
@@ -354,9 +355,13 @@ PHP_METHOD(gene_application, setView)
 	}
 	if (view_len > 0) {
 		GENE_G(app_view) = estrndup(view, view_len);
+	} else {
+		GENE_G(app_view) = estrndup(GENE_VIEW_VIEW, strlen(GENE_VIEW_VIEW));
 	}
 	if (tpl_len > 0) {
 		GENE_G(app_ext) = estrndup(tpl, tpl_len);
+	} else {
+		GENE_G(app_ext) = estrndup(GENE_VIEW_EXT, strlen(GENE_VIEW_EXT));
 	}
     RETURN_ZVAL(self, 1, 0);
 }

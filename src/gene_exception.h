@@ -20,6 +20,7 @@
 #define GENE_EXCEPTION_FUNC_NAME 	"gene_exception::doException"
 #define GENE_ERROR_FUNC_NAME_NS 	"gene\\exception::doError"
 #define GENE_EXCEPTION_FUNC_NAME_NS "gene\\exception::doException"
+#define GENE_EXCEPTION_EX "_ex"
 #define HTML_ERROR_CONTENT "echo ' [Uncaught ',get_class($e),']:',$e->getMessage(),'File:***',substr($e->getFile(),-(ceil(strlen($e->getFile())*0.6))),' ',$e->getLine();"
 
 extern zend_class_entry *gene_exception_ce;
