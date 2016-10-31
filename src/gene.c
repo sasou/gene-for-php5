@@ -47,7 +47,7 @@ ZEND_DECLARE_MODULE_GLOBALS(gene);
 /** {{{ PHP_INI
  */
 PHP_INI_BEGIN()
-	STD_PHP_INI_BOOLEAN("gene.namespace",   	"0", PHP_INI_SYSTEM, OnUpdateBool, use_namespace, zend_gene_globals, gene_globals)
+	STD_PHP_INI_BOOLEAN("gene.namespace",   	"1", PHP_INI_SYSTEM, OnUpdateBool, use_namespace, zend_gene_globals, gene_globals)
 	STD_PHP_INI_BOOLEAN("gene.viewCompile",   	"0", PHP_INI_SYSTEM, OnUpdateBool, view_compile, zend_gene_globals, gene_globals)
 PHP_INI_END();
 /* }}} */
