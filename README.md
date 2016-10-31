@@ -2,7 +2,9 @@
 
 	Simple, high performance,C extension framework for php！
 
-版本 1.0.1
+版本 1.2.1
+
+php7版本：https://github.com/sasou/php-gene-for-php7
 
 简单、高性能的php c扩展框架！
 框架的核心是gene_application类，加载配置文件并启动：
