@@ -119,10 +119,8 @@ void gene_router_set_uri(zval **leaf TSRMLS_DC)
 	if (zend_hash_find((*leaf)->value.ht, "key", 4, (void **)&key) == SUCCESS){
 		if (Z_STRLEN_PP(key)) {
 			if (GENE_G(router_path)){
-			    if (GENE_G(router_path)) {
-			    	efree(GENE_G(router_path));
-			    	GENE_G(router_path) = NULL;
-			    }
+			    efree(GENE_G(router_path));
+			    GENE_G(router_path) = NULL;
 			}
 			GENE_G(router_path) =  estrndup(Z_STRVAL_PP(key), Z_STRLEN_PP(key));
 		}
