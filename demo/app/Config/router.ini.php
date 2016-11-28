@@ -1,8 +1,8 @@
 <?php
-$router = new gene_router();
+$router = new \gene\router();
 $router->clear()
-	->get("/",function(){
-            echo "index";
+	->get("/",function (){
+            (new \Controllers\Index)->run();
 		})
 	->group("/admin")
 		->get("/",function(){
@@ -10,7 +10,7 @@ $router->clear()
 		},"auth")
 		->get("/:name/",function($abc){
 			var_dump($abc);
-		})
+		},"auth@")
 		->get("/:name.:ext",function($abc){
 			var_dump($abc);
 		})
@@ -24,19 +24,19 @@ $router->clear()
 	->group()
 	->get("/index",function(){
 		echo 'index';
+	},"@clearAll")
+	->error(404,function(){echo " 404 "; })
+	->error("exception",function($e){
+		var_dump($e);
+		gene_router::display("error");
 	})
-	->error(401,function(){
-		echo " 401 ";
-	})
-	->hook("auth",function(){
-		echo " auth ";
-	})
+	->hook("auth",function(){echo " auth ";})
 	->hook("before", function(){
 		echo " before ";
+		$bbc = ' bbc ';
 	})
 	->hook("after", function($params){
 		echo " after ";
 		if(is_array($params))var_dump($params);
-	})
-	;
+	});
 	

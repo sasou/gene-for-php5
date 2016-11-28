@@ -52,7 +52,7 @@ ZEND_END_ARG_INFO()
 zval ** get_path_router(zval **val,char *paths TSRMLS_DC)
 {
 	zval **ret = NULL,**tmp = NULL,**leaf = NULL,*var;
-	char *seg = NULL,*ptr = NULL,*key = NULL;
+	char *seg = NULL,*ptr = NULL,*key = NULL,*path = NULL;
 	int keylen;
 	long idx;
 	if (strlen(paths)==0) {
@@ -61,10 +61,11 @@ zval ** get_path_router(zval **val,char *paths TSRMLS_DC)
 		}
 		return leaf;
 	} else {
-		seg = php_strtok_r(paths, "/", &ptr);
+		spprintf(&path, 0, "%s", paths);
+		seg = php_strtok_r(path, "/", &ptr);
 		if (ptr && strlen(seg)>0) {
 			if (zend_hash_find((*val)->value.ht,seg, strlen(seg)+1, (void **)&ret) == SUCCESS){
-				leaf =  get_path_router(ret,ptr TSRMLS_CC);
+				leaf =  get_path_router(ret, ptr TSRMLS_CC);
 			} else {
 				if (zend_hash_find((*val)->value.ht, "chird", 6, (void **)&ret) == SUCCESS){
 					for(zend_hash_internal_pointer_reset((*ret)->value.ht);zend_hash_has_more_elements((*ret)->value.ht) == SUCCESS;zend_hash_move_forward((*ret)->value.ht)) {
@@ -82,7 +83,7 @@ zval ** get_path_router(zval **val,char *paths TSRMLS_DC)
 
 						} else {
 							if (zend_hash_get_current_data((*ret)->value.ht, (void**)&tmp) == SUCCESS) {
-								leaf = get_path_router(tmp,ptr TSRMLS_CC);
+								leaf = get_path_router(tmp, ptr TSRMLS_CC);
 								if (leaf ) {
 									MAKE_STD_ZVAL(var);
 									ZVAL_STRING(var,seg,1);
@@ -113,7 +114,6 @@ zval ** get_path_router(zval **val,char *paths TSRMLS_DC)
 									break;
 								}
 							}
-
 						} else {
 							if (zend_hash_get_current_data((*ret)->value.ht, (void**)&tmp) == SUCCESS) {
 								if (zend_hash_find((*tmp)->value.ht, "leaf", 5, (void **)&leaf) == SUCCESS){
@@ -130,6 +130,8 @@ zval ** get_path_router(zval **val,char *paths TSRMLS_DC)
 			}
 		}
 	}
+	efree(path);
+	path = NULL;
 	return leaf;
 }
 /* }}} */
@@ -537,7 +539,7 @@ void get_router_content_run(char *methodin,char *pathin,zval *safe TSRMLS_DC)
 			get_router_info(lead,&cacheHook TSRMLS_CC);
 			lead = NULL;
 		} else {
-			if (!get_router_error_run_by_router(cacheHook,"401" TSRMLS_CC)) {
+			if (!get_router_error_run_by_router(cacheHook,"404" TSRMLS_CC)) {
 				if (GENE_G(path)) {
 					php_error_docref(NULL TSRMLS_CC, E_WARNING, "Gene Unknown Url:%s",  GENE_G(path));
 				} else {

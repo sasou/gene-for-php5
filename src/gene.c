@@ -272,7 +272,7 @@ PHP_MINFO_FUNCTION(gene)
 /* }}} */
 
 
-PHP_FUNCTION(gene_urlParams){
+PHP_FUNCTION(gene_urlParams) {
 	zval *cache = NULL;
 	int keyString_len;
 	char *keyString = NULL;
@@ -286,12 +286,17 @@ PHP_FUNCTION(gene_urlParams){
 	RETURN_NULL();
 }
 
+PHP_FUNCTION(gene_version) {
+	RETURN_STRING(PHP_GENE_VERSION, 1);
+}
+
 /* {{{ gene_functions[]
  *
  * Every user visible function must have an entry in gene_functions[].
  */
 zend_function_entry gene_functions[] = {
 	PHP_FE(gene_urlParams,NULL)
+	PHP_FE(gene_version,NULL)
 	PHP_FE_END
 };
 /* }}} */

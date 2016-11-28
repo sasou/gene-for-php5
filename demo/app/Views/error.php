@@ -1,4 +1,5 @@
 <?php
+	$e = gene\exception::getEx();
     $file = $e->getFile();
     $line = $e->getLine();
     if ( file_exists( $file ) )
@@ -38,9 +39,9 @@ table.trace td {padding : 2px 4px 2px 4px;}
 		<?php for($i =$line-3;$i<$line+3;$i++):?>
 			<?php if($i>0 && $i<count($lines)):?>
 				<?php if ( $i == $line-1 ) : ?>
-					<li class="line"><?php echo str_replace( "\n", "", $lines[$i] );?></li>
+					<li class="line"><?php echo htmlspecialchars(str_replace( "\n", "", $lines[$i] ), ENT_COMPAT);?></li>
 				<?php else:?>
-					<li><?php echo str_replace( "\n", "", $lines[$i] );?></li>
+					<li><?php echo htmlspecialchars(str_replace( "\n", "", $lines[$i] ));?></li>
 				<?php endif;?>
 			<?php endif;?>
 		<?php endfor;?>
@@ -78,3 +79,4 @@ table.trace td {padding : 2px 4px 2px 4px;}
 </div>
 </body>
 </html>
+<?php die;?>
