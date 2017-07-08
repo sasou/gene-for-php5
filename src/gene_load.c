@@ -40,6 +40,7 @@ int gene_load_import(char *path TSRMLS_DC) {
 	char realpath[MAXPATHLEN];
 
 	if (!VCWD_REALPATH(path, realpath)) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to load class file %s", path);
 		return 0;
 	}
 

@@ -24,10 +24,8 @@
 #include "Zend/zend_API.h"
 #include "Zend/zend_exceptions.h"
 #include "Zend/zend_alloc.h"
+#include "Zend/zend_interfaces.h"
 #include "ext/pcre/php_pcre.h"
-#include "ext/reflection/php_reflection.h"
-#include "ext/spl/spl_directory.h"
-
 
 
 #include "php_gene.h"
@@ -38,6 +36,8 @@
 #include "gene_view.h"
 
 zend_class_entry *gene_router_ce;
+static zend_class_entry **reflection_function_ptr;
+static zend_class_entry **spl_ce_SplFileObject;
 
 /** {{{ ARG_INFO
  */
@@ -46,6 +46,22 @@ ZEND_BEGIN_ARG_INFO_EX(gene_router_call_arginfo, 0, 0, 2)
 	ZEND_ARG_INFO(0, value)
 ZEND_END_ARG_INFO()
 /* }}} */
+
+/** {{{ static void get_router_info(char *keyString, int keyString_len TSRMLS_DC)
+ */
+void set_mvc(char *key, int len,char *val TSRMLS_DC)
+{
+	if (len == 2) {
+		if (strcmp(key, "c")==0) {
+			GENE_G(controller) = estrdup(val);
+			return;
+		}
+		if (strcmp(key, "a")==0) {
+			GENE_G(action) = estrdup(val);
+			return;
+		}
+	}
+}
 
 /** {{{ static void get_path_router(char *keyString, int keyString_len TSRMLS_DC)
  */
@@ -73,10 +89,6 @@ zval ** get_path_router(zval **val,char *paths TSRMLS_DC)
 							if (zend_hash_get_current_data((*ret)->value.ht, (void**)&tmp) == SUCCESS) {
 								leaf = get_path_router(tmp,ptr TSRMLS_CC);
 								if (leaf ) {
-									MAKE_STD_ZVAL(var);
-									ZVAL_STRING(var,seg,1);
-									gene_cache_set_by_router(PHP_GENE_URL_PARAMS, strlen(PHP_GENE_URL_PARAMS), "", var, 0 TSRMLS_CC);
-									zval_ptr_dtor(&var);
 									break;
 								}
 							}
@@ -85,10 +97,10 @@ zval ** get_path_router(zval **val,char *paths TSRMLS_DC)
 							if (zend_hash_get_current_data((*ret)->value.ht, (void**)&tmp) == SUCCESS) {
 								leaf = get_path_router(tmp, ptr TSRMLS_CC);
 								if (leaf ) {
+									set_mvc(key, keylen, seg TSRMLS_CC);
 									MAKE_STD_ZVAL(var);
 									ZVAL_STRING(var,seg,1);
-									gene_cache_set_by_router(PHP_GENE_URL_PARAMS, strlen(PHP_GENE_URL_PARAMS), key, var, 0 TSRMLS_CC);
-									zval_ptr_dtor(&var);
+									zend_hash_update(GENE_G(params),key, keylen+1, (void **)&var, sizeof(zval *), NULL);
 									break;
 								}
 							}
@@ -107,20 +119,16 @@ zval ** get_path_router(zval **val,char *paths TSRMLS_DC)
 						if (zend_hash_get_current_key_ex((*ret)->value.ht, &key, &keylen, &idx, 0, NULL) == HASH_KEY_IS_LONG) {
 							if (zend_hash_get_current_data((*ret)->value.ht, (void**)&tmp) == SUCCESS) {
 								if (zend_hash_find((*tmp)->value.ht, "leaf", 5, (void **)&leaf) == SUCCESS){
-									MAKE_STD_ZVAL(var);
-									ZVAL_STRING(var,seg,1);
-									gene_cache_set_by_router(PHP_GENE_URL_PARAMS, strlen(PHP_GENE_URL_PARAMS), "", var, 0 TSRMLS_CC);
-									zval_ptr_dtor(&var);
 									break;
 								}
 							}
 						} else {
 							if (zend_hash_get_current_data((*ret)->value.ht, (void**)&tmp) == SUCCESS) {
 								if (zend_hash_find((*tmp)->value.ht, "leaf", 5, (void **)&leaf) == SUCCESS){
+									set_mvc(key, keylen, seg TSRMLS_CC);
 									MAKE_STD_ZVAL(var);
 									ZVAL_STRING(var,seg,1);
-									gene_cache_set_by_router(PHP_GENE_URL_PARAMS, strlen(PHP_GENE_URL_PARAMS), key, var, 0 TSRMLS_CC);
-									zval_ptr_dtor(&var);
+									zend_hash_update(GENE_G(params),key, keylen+1, (void **)&var, sizeof(zval *), NULL);
 									break;
 								}
 							}
@@ -176,6 +184,8 @@ int get_router_info(zval **leaf,zval **cacheHook TSRMLS_DC)
 		}
 	}
 	if (zend_hash_find((*leaf)->value.ht, "run", 4, (void **)&m) == SUCCESS){
+		//todo 替换路由
+		//StrReplace();
 		size = size+Z_STRLEN_PP(m);
 		run = erealloc(run,size);
 		strcat(run,Z_STRVAL_PP(m));
@@ -299,7 +309,7 @@ char * get_function_content(zval **content TSRMLS_DC)
 	MAKE_STD_ZVAL(objEx);
 	MAKE_STD_ZVAL(ret);
 	MAKE_STD_ZVAL(arg);
-	_object_init_ex(objEx, reflection_function_ptr ZEND_FILE_LINE_CC TSRMLS_CC);
+	_object_init_ex(objEx, *reflection_function_ptr ZEND_FILE_LINE_CC TSRMLS_CC);
 	ZVAL_STRING(arg,"__construct",1);
 	params[0] = *content;
 	call_user_function(NULL, &objEx, arg, ret,1,params TSRMLS_CC);
@@ -333,7 +343,8 @@ char * get_function_content(zval **content TSRMLS_DC)
 	MAKE_STD_ZVAL(objEx);
 	MAKE_STD_ZVAL(ret);
 	MAKE_STD_ZVAL(arg);
-	_object_init_ex(objEx, spl_ce_SplFileObject ZEND_FILE_LINE_CC TSRMLS_CC);
+
+	_object_init_ex(objEx, *spl_ce_SplFileObject ZEND_FILE_LINE_CC TSRMLS_CC);
 	ZVAL_STRING(arg,"__construct",1);
 	params[0] = fileName;
 	call_user_function(NULL, &objEx, arg, ret,1,params TSRMLS_CC);
@@ -650,7 +661,7 @@ PHP_METHOD(gene_router, runError)
 PHP_METHOD(gene_router, __construct)
 {
 	zval *safe = NULL;
-	int len = 0;
+	int len = 0,retval;
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"|z", &safe) == FAILURE)
     {
         RETURN_NULL();
@@ -665,6 +676,14 @@ PHP_METHOD(gene_router, __construct)
     		zend_update_property_string(gene_router_ce, getThis(), GENE_ROUTER_SAFE, strlen(GENE_ROUTER_SAFE), GENE_G(directory) TSRMLS_CC);
     	}
     }
+    retval = zend_lookup_class("ReflectionFunction", sizeof("ReflectionFunction")-1, &reflection_function_ptr TSRMLS_CC);
+	if (FAILURE == retval) {
+    	php_error_docref(NULL, E_WARNING, "Unable to start ReflectionFunction");
+	}
+    zend_lookup_class("SplFileObject", sizeof("SplFileObject")-1, &spl_ce_SplFileObject TSRMLS_CC);
+	if (FAILURE == retval) {
+    	php_error_docref(NULL, E_WARNING, "Unable to start SplFileObject");
+	}
 }
 /* }}} */
 

@@ -46,6 +46,7 @@ void gene_cache_set(char *keyString, int keyString_len, zval *zvalue, int validi
 zval * gene_cache_get(char *keyString, int keyString_len TSRMLS_DC);
 zval * gene_cache_get_quick(char *keyString, int keyString_len TSRMLS_DC);
 zval * gene_cache_get_by_config(char *keyString, int keyString_len,char *path TSRMLS_DC);
+zval * gene_params(char *keyString, int keyString_len TSRMLS_DC);
 void gene_cache_set_by_router(char *keyString, int keyString_len, char *path, zval *zvalue, int validity TSRMLS_DC);
 zval * gene_cache_set_val(zval *val, char *keyString, int keyString_len, zval *zvalue TSRMLS_DC);
 long gene_cache_getTime(char *keyString, int keyString_len TSRMLS_DC);

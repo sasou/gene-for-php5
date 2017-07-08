@@ -251,57 +251,12 @@ PHP_METHOD(gene_exception, doError)
 /* }}} */
 
 /*
- * {{{ gene_exception::doException
- */
-PHP_METHOD(gene_exception, doException)
-{
-	zval *e = NULL,*safe = NULL;
-	char *run = NULL;
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"z", &e) == FAILURE)
-    {
-        RETURN_NULL();
-    }
-    zend_update_static_property(gene_exception_ce, GENE_EXCEPTION_EX, strlen(GENE_EXCEPTION_EX), e);
-    if (GENE_G(gene_exception) == 1) {
-    	gene_view_display_ext("error" , 0 TSRMLS_CC);
-    } else {
-		if (GENE_G(use_namespace)) {
-			spprintf(&run, 0, "%s", HTML_ERROR_CONTENT_NS);
-		} else {
-			spprintf(&run, 0, "%s", HTML_ERROR_CONTENT);
-		}
-		zend_try {
-			zend_eval_stringl(run, strlen(run), NULL, "gene_error" TSRMLS_CC);
-		} zend_catch {
-			efree(run);
-			run = NULL;
-			zend_bailout();
-		} zend_end_try();
-		efree(run);
-		run = NULL;
-    }
-}
-/* }}} */
-
-/*
- * {{{ gene_exception::doException
- */
-PHP_METHOD(gene_exception, getEx)
-{
-	zval *ex = zend_read_static_property(gene_exception_ce, GENE_EXCEPTION_EX, strlen(GENE_EXCEPTION_EX), 1);
-	RETURN_ZVAL(ex, 1, 0);
-}
-/* }}} */
-
-/*
  * {{{ gene_exception_methods
  */
 zend_function_entry gene_exception_methods[] = {
 		PHP_ME(gene_exception, setErrorHandler, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 		PHP_ME(gene_exception, setExceptionHandler, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 		PHP_ME(gene_exception, doError, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
-		PHP_ME(gene_exception, doException, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
-		PHP_ME(gene_exception, getEx, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 #if ((PHP_MAJOR_VERSION == 5) && (PHP_MINOR_VERSION < 3)) || (PHP_MAJOR_VERSION < 5)
 		PHP_ME(gene_exception, __construct, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
 		PHP_ME(gene_exception, getPrevious, NULL, ZEND_ACC_PUBLIC)
@@ -323,9 +278,6 @@ GENE_MINIT_FUNCTION(exception)
 	zend_declare_property_long(gene_exception_ce, ZEND_STRL("code"), 0,	ZEND_ACC_PROTECTED TSRMLS_CC);
 	zend_declare_property_null(gene_exception_ce, ZEND_STRL("previous"),  ZEND_ACC_PROTECTED TSRMLS_CC);
 
-	//prop
-    zend_declare_property_null(gene_exception_ce, GENE_EXCEPTION_EX, strlen(GENE_EXCEPTION_EX),  ZEND_ACC_PROTECTED|ZEND_ACC_STATIC);
-    //
 	return SUCCESS;
 }
 /* }}} */

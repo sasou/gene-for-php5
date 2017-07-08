@@ -290,6 +290,28 @@ char * replace_string (char * string, char source, const char * destination )
 }
 /* }}} */
 
+int StrReplace(char strRes[],char from[], char to[]) {
+    int i,flag = 0;
+    char *p,*q,*ts;
+    for(i = 0; strRes[i]; ++i) {
+        if(strRes[i] == from[0]) {
+            p = strRes + i;
+            q = from;
+            while(*q && (*p++ == *q++));
+            if(*q == '\0') {
+                ts = (char *)malloc(strlen(strRes) + 1);
+                strcpy(ts,p);
+                strRes[i] = '\0';
+                strcat(strRes,to);
+                strcat(strRes,ts);
+                free(ts);
+                flag = 1;
+            }
+        }
+    }
+    return flag;
+}
+
 /*
  * {{{ char * replace_string (char * string, const char * source, const char * destination )
  */

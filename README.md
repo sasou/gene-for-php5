@@ -1,27 +1,21 @@
-#php-gene
+# php-gene 
 
-	Simple, high performance,C extension framework for php！
+	Simple, high performance,C extension framework for php5！
+    版本：1.2.3
+    
+php7的版本 ：https://github.com/sasou/php-gene-for-php7
 
-版本 1.2.1
-
-php7版本：https://github.com/sasou/php-gene-for-php7
+windows版本：https://github.com/sasou/php-gene-for-windows
 
 简单、高性能的php c扩展框架！
 框架的核心是gene_application类，加载配置文件并启动：
 
+    简单运行：
 	<?php
-	$app = new gene_application('sdfsdf');
+	$app = new \Gene\Aplication();
 	$app->load("router.ini.php")
 	    ->load("config.ini.php")
 	    ->run();
-		
-	该类其他方法：
-	$app->autoload($path,$loadFN);
-	$app->urlParams();
-	$app->getMethod();
-	$app->getPath();
-	$app->getRouterUri();
-	$app->config();
 
 框架的基础是一个高性能的进程缓存模块，基于缓存模块，实现了一个高性能的强大路由解析以及配置缓存；
 路由强大灵活，支持回调、rest、http请求方式（get,post,put,patch,delete,trace,connect,options,head）等：
@@ -52,9 +46,6 @@ php7版本：https://github.com/sasou/php-gene-for-php7
 				echo 'baidu';
 				return array('sdfasd'=>'baidu.edu.com');
 			},"auth@clearAll")
-			->get("/",function(){
-				echo 'admin';
-			},'adminauth')
 		->group()
 		
 		->get("/index",function(){
@@ -88,35 +79,12 @@ php7版本：https://github.com/sasou/php-gene-for-php7
 	$config->set("dsfsdfsd.port",'test');
 	$config->get("dsfsdfsd.port");
 	
-cahce类提供进程级缓存功能：
-
-	<?php
-	$config = new gene_cache();
-	$config->set($cacheName,$value);
-	$config->get($cacheName);
-	$config->exists($cacheName);
-	$config->del($cacheName);
-	
-load类定义了自动加载：
-
-	<?php
-	$config = new gene_load();
-	$config->autoload($path,$loadFN);
-	$config->import($fileName);
-	
-reg类定义了类的单例集中管理：
-
-	<?php
-	$config = new gene_reg();
-	$config->get($className);
-	$config->set($className,$class);
-	$config->has($className);
-	$config->del($className);
+其他类：controller、view、request、response、session、reg、load、exception等，详见文档；
 	
 安装：
 	
 	phpize
-	./configure --with-php-config=/PATH/php-config
+	./configure --enable-gene=shared
 	make
 	make install
 	
@@ -137,6 +105,10 @@ DEMO：
 	http://php-gene.com/demo/admin/ajax.js
 	http://php-gene.com/demo/admin/blog/test/baidu
 
-案例：
+案例一：
         湖北省教育用户认证中心(全省几百万学生、教育用户的登录入口)
         http://open.e21.cn/
+        
+案例二：
+        尚动电子商务平台
+        https://www.shangsports.com/
