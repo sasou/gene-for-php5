@@ -1,18 +1,18 @@
 /*
-  +----------------------------------------------------------------------+
-  | gene                                                                 |
-  +----------------------------------------------------------------------+
-  | This source file is subject to version 3.01 of the PHP license,      |
-  | that is bundled with this package in the file LICENSE, and is        |
-  | available through the world-wide-web at the following url:           |
-  | http://www.php.net/license/3_01.txt                                  |
-  | If you did not receive a copy of the PHP license and are unable to   |
-  | obtain it through the world-wide-web, please send a note to          |
-  | license@php.net so we can mail you a copy immediately.               |
-  +----------------------------------------------------------------------+
-  | Author: Sasou  <admin@caophp.com>                                    |
-  +----------------------------------------------------------------------+
-*/
+ +----------------------------------------------------------------------+
+ | gene                                                                 |
+ +----------------------------------------------------------------------+
+ | This source file is subject to version 3.01 of the PHP license,      |
+ | that is bundled with this package in the file LICENSE, and is        |
+ | available through the world-wide-web at the following url:           |
+ | http://www.php.net/license/3_01.txt                                  |
+ | If you did not receive a copy of the PHP license and are unable to   |
+ | obtain it through the world-wide-web, please send a note to          |
+ | license@php.net so we can mail you a copy immediately.               |
+ +----------------------------------------------------------------------+
+ | Author: Sasou  <admin@php-gene.com> web:www.php-gene.com             |
+ +----------------------------------------------------------------------+
+ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -24,7 +24,6 @@
 #include "Zend/zend_API.h"
 #include "zend_exceptions.h"
 
-
 #include "php_gene.h"
 #include "gene_exception.h"
 #include "gene_router.h"
@@ -33,11 +32,11 @@
 zend_class_entry * gene_exception_ce;
 
 /** {{{ int gene_exception_error_register(zval *callback,zval *error_type TSRMLS_DC)
-*/
-int gene_exception_error_register(zval *callback,zval *error_type TSRMLS_DC) {
+ */
+int gene_exception_error_register(zval *callback, zval *error_type TSRMLS_DC) {
 	zval *ret;
-	zval *params[2]	 = {0};
-	zval function	 = {{0}, 0};
+	zval *params[2] = { 0 };
+	zval function = { { 0 }, 0 };
 	int arg_num = 1;
 
 	if (!callback) {
@@ -56,11 +55,13 @@ int gene_exception_error_register(zval *callback,zval *error_type TSRMLS_DC) {
 
 	ZVAL_STRING(&function, "set_error_handler", 0);
 	MAKE_STD_ZVAL(ret);
-	if (call_user_function(EG(function_table), NULL, &function, ret, arg_num, params TSRMLS_CC) == FAILURE) {
+	if (call_user_function(EG(function_table), NULL, &function, ret, arg_num,
+			params TSRMLS_CC) == FAILURE) {
 		if (ret) {
 			zval_dtor(ret);
 		}
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Call to set_error_handler failed");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"Call to set_error_handler failed");
 		return 0;
 	}
 	if (ret) {
@@ -70,11 +71,11 @@ int gene_exception_error_register(zval *callback,zval *error_type TSRMLS_DC) {
 }
 
 /** {{{ int gene_exception_register(zval *callback,zval *error_type TSRMLS_DC)
-*/
-int gene_exception_register(zval *callback,zval *error_type TSRMLS_DC) {
+ */
+int gene_exception_register(zval *callback, zval *error_type TSRMLS_DC) {
 	zval *ret;
-	zval *params[2]	 = {0};
-	zval function	 = {{0}, 0};
+	zval *params[2] = { 0 };
+	zval function = { { 0 }, 0 };
 	int arg_num = 1;
 
 	if (!callback) {
@@ -94,11 +95,13 @@ int gene_exception_register(zval *callback,zval *error_type TSRMLS_DC) {
 
 	ZVAL_STRING(&function, "set_exception_handler", 0);
 	MAKE_STD_ZVAL(ret);
-	if (call_user_function(EG(function_table), NULL, &function, ret, arg_num, params TSRMLS_CC) == FAILURE) {
+	if (call_user_function(EG(function_table), NULL, &function, ret, arg_num,
+			params TSRMLS_CC) == FAILURE) {
 		if (ret) {
 			zval_dtor(ret);
 		}
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Call to set_exception_handler failed");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+				"Call to set_exception_handler failed");
 		return 0;
 	}
 	if (ret) {
@@ -106,7 +109,6 @@ int gene_exception_register(zval *callback,zval *error_type TSRMLS_DC) {
 	}
 	return 1;
 }
-
 
 /** {{{void gene_trigger_error(int type TSRMLS_DC, char *format, ...)
  */
@@ -135,7 +137,7 @@ void gene_trigger_error(int type TSRMLS_DC, char *format, ...) {
 /* }}} */
 
 /** {{{ zend_class_entry * gene_get_exception_base(int root TSRMLS_DC)
-*/
+ */
 zend_class_entry * gene_get_exception_base(int root TSRMLS_DC) {
 #if can_handle_soft_dependency_on_SPL && defined(HAVE_SPL) && ((PHP_MAJOR_VERSION > 5) || (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 1))
 	if (!root) {
@@ -161,7 +163,7 @@ zend_class_entry * gene_get_exception_base(int root TSRMLS_DC) {
 /* }}} */
 
 /** {{{ void gene_throw_exception(long code, char *message TSRMLS_DC)
-*/
+ */
 void gene_throw_exception(long code, char *message TSRMLS_DC) {
 	zend_class_entry *base_exception = gene_exception_ce;
 
@@ -171,12 +173,12 @@ void gene_throw_exception(long code, char *message TSRMLS_DC) {
 
 #if ((PHP_MAJOR_VERSION == 5) && (PHP_MINOR_VERSION < 3)) || (PHP_MAJOR_VERSION < 5)
 /** {{{ proto gene_exception::__construct($mesg = 0, $code = 0, Exception $previous = NULL)
-*/
+ */
 PHP_METHOD(gene_exception, __construct) {
-	char  	*message = NULL;
-	zval  	*object, *previous = NULL;
-	int 	message_len, code = 0;
-	int    	argc = ZEND_NUM_ARGS();
+	char *message = NULL;
+	zval *object, *previous = NULL;
+	int message_len, code = 0;
+	int argc = ZEND_NUM_ARGS();
 
 	if (zend_parse_parameters_ex(ZEND_PARSE_PARAMS_QUIET, argc TSRMLS_CC, "|sl!", &message, &message_len, &code, &previous, gene_get_exception_base(0 TSRMLS_CC)) == FAILURE) {
 		php_error_docref(NULL TSRMLS_CC, E_ERROR, "Wrong parameters for Exception([string $exception [, long $code [, Exception $previous = NULL]]])");
@@ -199,7 +201,7 @@ PHP_METHOD(gene_exception, __construct) {
 /* }}} */
 
 /** {{{ proto gene_exception::getPrevious(void)
-*/
+ */
 PHP_METHOD(gene_exception, getPrevious) {
 	zval *prev = zend_read_property(Z_OBJCE_P(getThis()), getThis(), ZEND_STRL("previous"), 1 TSRMLS_CC);
 	RETURN_ZVAL(prev, 1, 0);
@@ -208,45 +210,50 @@ PHP_METHOD(gene_exception, getPrevious) {
 #endif
 
 /** {{{ public gene_exception::setErrorHandler(string $callbacak[, int $error_types = E_ALL | E_STRICT ] )
-*/
+ */
 PHP_METHOD(gene_exception, setErrorHandler) {
 	zval *callback, *error_type = NULL;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|z", &callback, &error_type) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|z", &callback,
+			&error_type) == FAILURE) {
 		return;
 	}
 	gene_exception_error_register(callback, error_type TSRMLS_CC);
-	RETURN_TRUE;
+	RETURN_TRUE
+	;
 }
 /* }}} */
 
 /** {{{ public gene_exception::setExceptionHandler(string $callbacak[, int $error_types = E_ALL | E_STRICT ] )
-*/
+ */
 PHP_METHOD(gene_exception, setExceptionHandler) {
 	zval *callback = NULL, *error_type = NULL;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|zz", &callback, &error_type) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|zz", &callback,
+			&error_type) == FAILURE) {
 		return;
 	}
 	gene_exception_register(callback, error_type TSRMLS_CC);
-	RETURN_TRUE;
+	RETURN_TRUE
+	;
 }
 /* }}} */
 
 /*
  * {{{ gene_exception::doError
  */
-PHP_METHOD(gene_exception, doError)
-{
-	char *msg,*file;
+PHP_METHOD(gene_exception, doError) {
+	char *msg, *file;
 	zval *params = NULL;
-	long code = 0,line=0,msg_len,file_len;
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"ls|slz", &code,&msg,&msg_len,&file,&file_len,&line,&params) == FAILURE)
-    {
-        RETURN_NULL();
-    }
-    if (GENE_G(gene_error) == 1) {
-    	gene_trigger_error(code, "%s",msg);
-    }
-    RETURN_TRUE;
+	long code = 0, line = 0, msg_len, file_len;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ls|slz", &code, &msg,
+			&msg_len, &file, &file_len, &line, &params) == FAILURE) {
+		RETURN_NULL()
+		;
+	}
+	if (GENE_G(gene_error) == 1) {
+		gene_trigger_error(code, "%s", msg);
+	}
+	RETURN_TRUE
+	;
 }
 /* }}} */
 
@@ -254,34 +261,36 @@ PHP_METHOD(gene_exception, doError)
  * {{{ gene_exception_methods
  */
 zend_function_entry gene_exception_methods[] = {
-		PHP_ME(gene_exception, setErrorHandler, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
-		PHP_ME(gene_exception, setExceptionHandler, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
-		PHP_ME(gene_exception, doError, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	PHP_ME(gene_exception, setErrorHandler, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	PHP_ME(gene_exception, setExceptionHandler, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	PHP_ME(gene_exception, doError, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 #if ((PHP_MAJOR_VERSION == 5) && (PHP_MINOR_VERSION < 3)) || (PHP_MAJOR_VERSION < 5)
-		PHP_ME(gene_exception, __construct, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
-		PHP_ME(gene_exception, getPrevious, NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(gene_exception, __construct, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
+	PHP_ME(gene_exception, getPrevious, NULL, ZEND_ACC_PUBLIC)
 #endif
-		{NULL, NULL, NULL}
+	{ NULL, NULL, NULL }
 };
 /* }}} */
-
 
 /*
  * {{{ GENE_MINIT_FUNCTION
  */
-GENE_MINIT_FUNCTION(exception)
-{
-    zend_class_entry gene_exception;
-    GENE_INIT_CLASS_ENTRY(gene_exception, "Gene_Exception",  "Gene\\Exception", gene_exception_methods);
-    gene_exception_ce = zend_register_internal_class_ex(&gene_exception, gene_get_exception_base(0 TSRMLS_CC), NULL TSRMLS_CC);
-	zend_declare_property_null(gene_exception_ce, ZEND_STRL("message"), 	ZEND_ACC_PROTECTED TSRMLS_CC);
-	zend_declare_property_long(gene_exception_ce, ZEND_STRL("code"), 0,	ZEND_ACC_PROTECTED TSRMLS_CC);
-	zend_declare_property_null(gene_exception_ce, ZEND_STRL("previous"),  ZEND_ACC_PROTECTED TSRMLS_CC);
+GENE_MINIT_FUNCTION(exception) {
+	zend_class_entry gene_exception;
+	GENE_INIT_CLASS_ENTRY(gene_exception, "Gene_Exception", "Gene\\Exception",
+			gene_exception_methods);
+	gene_exception_ce = zend_register_internal_class_ex(&gene_exception,
+			gene_get_exception_base(0 TSRMLS_CC), NULL TSRMLS_CC);
+	zend_declare_property_null(gene_exception_ce, ZEND_STRL("message"),
+			ZEND_ACC_PROTECTED TSRMLS_CC);
+	zend_declare_property_long(gene_exception_ce, ZEND_STRL("code"), 0,
+			ZEND_ACC_PROTECTED TSRMLS_CC);
+	zend_declare_property_null(gene_exception_ce, ZEND_STRL("previous"),
+			ZEND_ACC_PROTECTED TSRMLS_CC);
 
 	return SUCCESS;
 }
 /* }}} */
-
 
 /*
  * Local variables:
