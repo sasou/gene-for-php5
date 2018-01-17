@@ -45,20 +45,31 @@ ZEND_ARG_INFO(0, value)
 ZEND_END_ARG_INFO()
 /* }}} */
 
-/** {{{ static void get_router_info(char *keyString, int keyString_len TSRMLS_DC)
+/** {{{ int setMca(char key, char *val TSRMLS_DC)
  */
-void set_mvc(char *key, int len, char *val TSRMLS_DC) {
-	if (len == 2) {
-		if (strcmp(key, "c") == 0) {
-			GENE_G(controller) = estrdup(val);
-			return;
-		}
-		if (strcmp(key, "a") == 0) {
-			GENE_G(action) = estrdup(val);
-			return;
-		}
+int setMca(char key, char *val TSRMLS_DC) {
+	zval *sval = NULL;
+	switch (key) {
+	php_printf(" setMca ");
+	case 'm':
+		MAKE_STD_ZVAL(sval);
+		ZVAL_STRING(sval, val, 1);
+		zend_hash_update(&EG(symbol_table), "m", 2, &sval, sizeof(zval*), NULL);
+		break;
+	case 'c':
+		MAKE_STD_ZVAL(sval);
+		ZVAL_STRING(sval, val, 1);
+		zend_hash_update(&EG(symbol_table), "c", 2, &sval, sizeof(zval*), NULL);
+		break;
+	case 'a':
+		MAKE_STD_ZVAL(sval);
+		ZVAL_STRING(sval, val, 1);
+		zend_hash_update(&EG(symbol_table), "a", 2, &sval, sizeof(zval*), NULL);
+		break;
 	}
+	return 1;
 }
+/* }}} */
 
 /** {{{ static void get_path_router(char *keyString, int keyString_len TSRMLS_DC)
  */
@@ -81,16 +92,14 @@ zval ** get_path_router(zval **val, char *paths TSRMLS_DC) {
 					(void **) &ret) == SUCCESS) {
 				leaf = get_path_router(ret, ptr TSRMLS_CC);
 			} else {
-				if (zend_hash_find((*val)->value.ht, "chird", 6,
-						(void **) &ret) == SUCCESS) {
-					for (zend_hash_internal_pointer_reset((*ret)->value.ht);
-							zend_hash_has_more_elements((*ret)->value.ht)
-									== SUCCESS;
-							zend_hash_move_forward((*ret)->value.ht)) {
-						if (zend_hash_get_current_key_ex((*ret)->value.ht, &key,
-								&keylen, &idx, 0, NULL) == HASH_KEY_IS_LONG) {
-							if (zend_hash_get_current_data((*ret)->value.ht,
-									(void** )&tmp) == SUCCESS) {
+				if (zend_hash_find((*val)->value.ht, "chird", 6, (void **) &ret) == SUCCESS) {
+					for (zend_hash_internal_pointer_reset((*ret)->value.ht); zend_hash_has_more_elements((*ret)->value.ht) == SUCCESS; zend_hash_move_forward((*ret)->value.ht)) {
+						if (zend_hash_get_current_key_ex((*ret)->value.ht, &key, &keylen, &idx, 0, NULL) == HASH_KEY_IS_LONG) {
+							php_printf(" 1 key: %s; len: %d ", key, keylen);
+							if (keylen == 2) {
+								setMca(key[0], seg TSRMLS_CC);
+							}
+							if (zend_hash_get_current_data((*ret)->value.ht, (void** )&tmp) == SUCCESS) {
 								leaf = get_path_router(tmp, ptr TSRMLS_CC);
 								if (leaf) {
 									break;
@@ -98,16 +107,16 @@ zval ** get_path_router(zval **val, char *paths TSRMLS_DC) {
 							}
 
 						} else {
-							if (zend_hash_get_current_data((*ret)->value.ht,
-									(void** )&tmp) == SUCCESS) {
+							php_printf(" 2 key: %s; len: %d ", key, keylen);
+							if (keylen == 2) {
+								setMca(key[0], seg TSRMLS_CC);
+							}
+							if (zend_hash_get_current_data((*ret)->value.ht, (void** )&tmp) == SUCCESS) {
 								leaf = get_path_router(tmp, ptr TSRMLS_CC);
 								if (leaf) {
-									set_mvc(key, keylen, seg TSRMLS_CC);
 									MAKE_STD_ZVAL(var);
 									ZVAL_STRING(var, seg, 1);
-									zend_hash_update(GENE_G(params), key,
-											keylen + 1, (void ** )&var,
-											sizeof(zval *), NULL);
+									zend_hash_update(GENE_G(params), key, keylen + 1, (void ** )&var, sizeof(zval *), NULL);
 									break;
 								}
 							}
@@ -125,12 +134,12 @@ zval ** get_path_router(zval **val, char *paths TSRMLS_DC) {
 			} else {
 				if (zend_hash_find((*val)->value.ht, "chird", 6,
 						(void **) &ret) == SUCCESS) {
-					for (zend_hash_internal_pointer_reset((*ret)->value.ht);
-							zend_hash_has_more_elements((*ret)->value.ht)
-									== SUCCESS;
-							zend_hash_move_forward((*ret)->value.ht)) {
-						if (zend_hash_get_current_key_ex((*ret)->value.ht, &key,
-								&keylen, &idx, 0, NULL) == HASH_KEY_IS_LONG) {
+					for (zend_hash_internal_pointer_reset((*ret)->value.ht); zend_hash_has_more_elements((*ret)->value.ht) == SUCCESS; zend_hash_move_forward((*ret)->value.ht)) {
+						if (zend_hash_get_current_key_ex((*ret)->value.ht, &key, &keylen, &idx, 0, NULL) == HASH_KEY_IS_LONG) {
+							php_printf(" 3 key: %s; len: %d ", key, keylen);
+							if (keylen == 2) {
+								setMca(key[0], seg TSRMLS_CC);
+							}
 							if (zend_hash_get_current_data((*ret)->value.ht,
 									(void** )&tmp) == SUCCESS) {
 								if (zend_hash_find((*tmp)->value.ht, "leaf", 5,
@@ -139,16 +148,15 @@ zval ** get_path_router(zval **val, char *paths TSRMLS_DC) {
 								}
 							}
 						} else {
-							if (zend_hash_get_current_data((*ret)->value.ht,
-									(void** )&tmp) == SUCCESS) {
-								if (zend_hash_find((*tmp)->value.ht, "leaf", 5,
-										(void **) &leaf) == SUCCESS) {
-									set_mvc(key, keylen, seg TSRMLS_CC);
+							php_printf(" 4 key: %s; len: %d ", key, keylen);
+							if (keylen == 2) {
+								setMca(key[0], seg TSRMLS_CC);
+							}
+							if (zend_hash_get_current_data((*ret)->value.ht, (void** )&tmp) == SUCCESS) {
+								if (zend_hash_find((*tmp)->value.ht, "leaf", 5, (void **) &leaf) == SUCCESS) {
 									MAKE_STD_ZVAL(var);
 									ZVAL_STRING(var, seg, 1);
-									zend_hash_update(GENE_G(params), key,
-											keylen + 1, (void ** )&var,
-											sizeof(zval *), NULL);
+									zend_hash_update(GENE_G(params), key, keylen + 1, (void ** )&var, sizeof(zval *), NULL);
 									break;
 								}
 							}
@@ -206,8 +214,6 @@ int get_router_info(zval **leaf, zval **cacheHook TSRMLS_DC) {
 		}
 	}
 	if (zend_hash_find((*leaf)->value.ht, "run", 4, (void **) &m) == SUCCESS) {
-		//todo 替换路由
-		//StrReplace();
 		size = size + Z_STRLEN_PP(m);
 		run = erealloc(run, size);
 		strcat(run, Z_STRVAL_PP(m));
@@ -226,19 +232,17 @@ int get_router_info(zval **leaf, zval **cacheHook TSRMLS_DC) {
 		strcat(run, Z_STRVAL_PP(after));
 		run[size - 1] = 0;
 	}
-	zend_try
-			{
-				zend_eval_stringl(run, strlen(run), NULL, "" TSRMLS_CC);
-			}zend_catch
-			{
-				efree(run);
-				run = NULL;
-				if (hookname) {
-					efree(hookname);
-					hookname = NULL;
-				}
-				zend_bailout();
-			}zend_end_try();
+	zend_try {
+		zend_eval_stringl(run, strlen(run), NULL, "" TSRMLS_CC);
+	} zend_catch {
+		efree(run);
+		run = NULL;
+		if (hookname) {
+			efree(hookname);
+			hookname = NULL;
+		}
+		zend_bailout();
+	}zend_end_try();
 	efree(run);
 	run = NULL;
 	if (hookname) {
@@ -261,17 +265,15 @@ int get_router_error_run_by_router(zval *cacheHook, char *errorName TSRMLS_DC) {
 				(void **) &error) == SUCCESS) {
 			spprintf(&run, 0, "%s%s", GENE_ROUTER_CHIRD_PRE,
 					Z_STRVAL_PP(error));
-			zend_try
-					{
-						zend_eval_stringl(run, strlen(run), NULL,
+			zend_try {
+				zend_eval_stringl(run, strlen(run), NULL,
 								errorName TSRMLS_CC);
-					}zend_catch
-					{
-						efree(router_e);
-						efree(run);
-						run = NULL;
-						zend_bailout();
-					}zend_end_try();
+			} zend_catch {
+				efree(router_e);
+				efree(run);
+				run = NULL;
+				zend_bailout();
+			}zend_end_try();
 			efree(router_e);
 			efree(run);
 			run = NULL;
@@ -316,15 +318,13 @@ int get_router_error_run(char *errorName, zval *safe TSRMLS_DC) {
 	} else {
 		return 0;
 	}
-	zend_try
-			{
-				zend_eval_stringl(run, strlen(run), NULL, "" TSRMLS_CC);
-			}zend_catch
-			{
-				efree(run);
-				run = NULL;
-				zend_bailout();
-			}zend_end_try();
+	zend_try {
+		zend_eval_stringl(run, strlen(run), NULL, "" TSRMLS_CC);
+	} zend_catch {
+		efree(run);
+		run = NULL;
+		zend_bailout();
+	}zend_end_try();
 	efree(run);
 	run = NULL;
 	return 1;
@@ -504,6 +504,8 @@ char * get_router_content(zval **content, char *method, char *path TSRMLS_DC) {
 	char *contents, *seg, *ptr, *tmp;
 	spprintf(&contents, 0, "%s", Z_STRVAL_PP(content));
 	seg = php_strtok_r(contents, "@", &ptr);
+	replaceAll(seg, ':', '$');
+	replaceAll(ptr, ':', '$');
 	if (seg && ptr && strlen(ptr) > 0) {
 		if (strcmp(method, "hook") == 0) {
 			if (strcmp(path, "before") == 0) {

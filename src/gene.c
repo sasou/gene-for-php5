@@ -72,9 +72,6 @@ static void php_gene_init_globals()
 	GENE_G(params) = NULL;
 	GENE_G(auto_load_fun) = NULL;
 	GENE_G(child_views) = NULL;
-	GENE_G(module) = NULL;
-	GENE_G(controller) = NULL;
-	GENE_G(action) = NULL;
 	gene_cache_init(TSRMLS_C);
 }
 /* }}} */
@@ -182,18 +179,6 @@ PHP_MSHUTDOWN_FUNCTION(gene)
     	efree(GENE_G(child_views));
     	GENE_G(child_views) = NULL;
     }
-    if (GENE_G(module)) {
-    	efree(GENE_G(module));
-    	GENE_G(module) = NULL;
-    }
-    if (GENE_G(controller)) {
-    	efree(GENE_G(controller));
-    	GENE_G(controller) = NULL;
-    }
-    if (GENE_G(action)) {
-    	efree(GENE_G(action));
-    	GENE_G(action) = NULL;
-    }
 	if (GENE_G(cache)) {
 		zend_hash_destroy(GENE_G(cache));
 		pefree(GENE_G(cache), 1);
@@ -264,18 +249,6 @@ PHP_RSHUTDOWN_FUNCTION(gene)
     if (GENE_G(child_views)) {
     	efree(GENE_G(child_views));
     	GENE_G(child_views) = NULL;
-    }
-    if (GENE_G(module)) {
-    	efree(GENE_G(module));
-    	GENE_G(module) = NULL;
-    }
-    if (GENE_G(controller)) {
-    	efree(GENE_G(controller));
-    	GENE_G(controller) = NULL;
-    }
-    if (GENE_G(action)) {
-    	efree(GENE_G(action));
-    	GENE_G(action) = NULL;
     }
     if (GENE_G(app_key)) {
     	efree(GENE_G(app_key));
