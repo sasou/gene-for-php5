@@ -122,7 +122,7 @@ PHP_METHOD(gene_execute, GetOpcodes) {
 	if (!op_array) {
 		return;
 	}
-	for (i = 0; i < op_array->last; i++) {
+	for (i = 0; i < op_array->last_var; i++) {
 		zend_op op = op_array->opcodes[i];
 		add_index_long(opcodes_array, i, op.lineno);
 	}

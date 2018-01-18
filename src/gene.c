@@ -69,7 +69,6 @@ static void php_gene_init_globals()
 	GENE_G(app_key) = NULL;
 	GENE_G(cache) = NULL;
 	GENE_G(cache_easy) = NULL;
-	GENE_G(params) = NULL;
 	GENE_G(auto_load_fun) = NULL;
 	GENE_G(child_views) = NULL;
 	gene_cache_init(TSRMLS_C);
@@ -189,11 +188,6 @@ PHP_MSHUTDOWN_FUNCTION(gene)
 		pefree(GENE_G(cache_easy), 1);
 		GENE_G(cache_easy) = NULL;
 	}
-	if (GENE_G(params)) {
-		zend_hash_destroy(GENE_G(params));
-		pefree(GENE_G(params),1);
-		GENE_G(params) = NULL;
-	}
 	return SUCCESS;
 }
 
@@ -254,9 +248,6 @@ PHP_RSHUTDOWN_FUNCTION(gene)
     	efree(GENE_G(app_key));
     	GENE_G(app_key) = NULL;
     }
-	if (GENE_G(params)) {
-		zend_hash_clean(GENE_G(params));
-	}
 	return SUCCESS;
 }
 /* }}} */
@@ -281,16 +272,20 @@ PHP_MINFO_FUNCTION(gene)
 
 
 PHP_FUNCTION(gene_urlParams) {
-	zval *cache = NULL;
+	zval **ret = NULL, **val = NULL;
 	int keyString_len;
 	char *keyString = NULL;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &keyString, &keyString_len) == FAILURE) {
 		return;
 	}
-    cache = gene_params(keyString, keyString_len TSRMLS_CC);
-    if (cache) {
-    	RETURN_ZVAL(cache, 1, 1);
-    }
+	if (zend_hash_find(&EG(symbol_table), "params", 7, (void **) &ret) == SUCCESS) {
+		if (keyString) {
+			if (zend_hash_find(Z_ARRVAL_PP(ret), keyString, keyString_len + 1, (void **) &val) == SUCCESS) {
+				RETURN_ZVAL(*val, 1, 0);
+			}
+		}
+		RETURN_ZVAL(*ret, 1, 0);
+	}
 	RETURN_NULL();
 }
 

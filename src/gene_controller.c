@@ -160,20 +160,21 @@ PHP_METHOD(gene_controller, getMethod) {
  * {{{ public gene_controller::urlParams()
  */
 PHP_METHOD(gene_controller, urlParams) {
-	zval *cache = NULL;
+	zval **ret = NULL, **val = NULL;
 	int keyString_len;
 	char *keyString = NULL;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &keyString,
-			&keyString_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &keyString, &keyString_len) == FAILURE) {
 		return;
 	}
-	cache = gene_cache_get_by_config(PHP_GENE_URL_PARAMS,
-			strlen(PHP_GENE_URL_PARAMS), keyString TSRMLS_CC);
-	if (cache) {
-		RETURN_ZVAL(cache, 1, 1);
+	if (zend_hash_find(&EG(symbol_table), "params", 7, (void **) &ret) == SUCCESS) {
+		if (keyString) {
+			if (zend_hash_find(Z_ARRVAL_PP(ret), keyString, keyString_len + 1, (void **) &val) == SUCCESS) {
+				RETURN_ZVAL(*val, 1, 0);
+			}
+		}
+		RETURN_ZVAL(*ret, 1, 0);
 	}
-	RETURN_NULL()
-	;
+	RETURN_NULL();
 }
 /* }}} */
 

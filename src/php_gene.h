@@ -81,7 +81,6 @@ ZEND_BEGIN_MODULE_GLOBALS(gene)
     zend_bool   view_compile;
 	HashTable	*cache;
 	HashTable	*cache_easy;
-	HashTable	*params;
 ZEND_END_MODULE_GLOBALS(gene)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(gene);

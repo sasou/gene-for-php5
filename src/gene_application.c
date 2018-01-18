@@ -108,22 +108,6 @@ void gene_ini_router(TSRMLS_D) {
 }
 /* }}} */
 
-/** {{{ void gene_router_set_uri(zval **leaf TSRMLS_DC)
- */
-void gene_router_set_uri(zval **leaf TSRMLS_DC) {
-	zval **key;
-	if (zend_hash_find((*leaf)->value.ht, "key", 4, (void **) &key) == SUCCESS) {
-		if (Z_STRLEN_PP(key)) {
-			if (GENE_G(router_path)) {
-				efree(GENE_G(router_path));
-				GENE_G(router_path) = NULL;
-			}
-			GENE_G(router_path) = estrndup(Z_STRVAL_PP(key), Z_STRLEN_PP(key));
-		}
-	}
-}
-/* }}} */
-
 /*
  * {{{ gene_application
  */
@@ -131,8 +115,7 @@ PHP_METHOD(gene_application, __construct) {
 	zval *safe = NULL;
 	int len = 0;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|z", &safe) == FAILURE) {
-		RETURN_NULL()
-		;
+		RETURN_NULL();
 	}
 	gene_ini_router(TSRMLS_C);
 	if (safe && !GENE_G(app_key)) {
@@ -171,19 +154,21 @@ PHP_METHOD(gene_application, load) {
  * {{{ public gene_application::urlParams()
  */
 PHP_METHOD(gene_application, urlParams) {
-	zval *cache = NULL;
+	zval **ret = NULL, **val= NULL;
 	int keyString_len;
 	char *keyString = NULL;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &keyString, &keyString_len) == FAILURE) {
 		return;
 	}
-	cache = gene_cache_get_by_config(PHP_GENE_URL_PARAMS,
-			strlen(PHP_GENE_URL_PARAMS), keyString TSRMLS_CC);
-	if (cache) {
-		RETURN_ZVAL(cache, 1, 1);
+	if (zend_hash_find(&EG(symbol_table), "params", 7, (void **) &ret) == SUCCESS) {
+		if (keyString) {
+			if (zend_hash_find(Z_ARRVAL_PP(ret), keyString, keyString_len + 1, (void **) &val) == SUCCESS) {
+				RETURN_ZVAL(*val, 1, 0);
+			}
+		}
+		RETURN_ZVAL(*ret, 1, 0);
 	}
-	RETURN_NULL()
-	;
+	RETURN_NULL();
 }
 /* }}} */
 
@@ -194,8 +179,7 @@ PHP_METHOD(gene_application, getMethod) {
 	if (GENE_G(method)) {
 		RETURN_STRING(GENE_G(method), 1);
 	}
-	RETURN_NULL()
-	;
+	RETURN_NULL();
 }
 /* }}} */
 
@@ -206,8 +190,7 @@ PHP_METHOD(gene_application, getPath) {
 	if (GENE_G(path)) {
 		RETURN_STRING(GENE_G(path), 1);
 	}
-	RETURN_NULL()
-	;
+	RETURN_NULL();
 }
 /* }}} */
 
@@ -255,8 +238,7 @@ PHP_METHOD(gene_application, getRouterUri) {
 	if (GENE_G(router_path)) {
 		RETURN_STRING(GENE_G(router_path), 1);
 	}
-	RETURN_NULL()
-	;
+	RETURN_NULL();
 }
 /* }}} */
 
@@ -426,7 +408,7 @@ PHP_METHOD(gene_application, run) {
 	} else {
 		ZVAL_STRING(safe, GENE_G(directory), 1);
 	}
-
+    init();
 	get_router_content_run(methodin, pathin, safe TSRMLS_CC);
 	if (safe) {
 		zval_ptr_dtor(&safe);

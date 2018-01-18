@@ -178,13 +178,6 @@ void gene_cache_init(TSRMLS_D) {
 		zend_hash_init(GENE_G(cache_easy), 10, NULL,
 				(dtor_func_t ) gene_cache_easy_dtor, 1);
 	}
-	if (!GENE_G(params)) {
-		GENE_G(params) = (HashTable *) pemalloc(sizeof(HashTable), 1);
-		if (!GENE_G(cache_easy)) {
-			return;
-		}
-		zend_hash_init(GENE_G(params), 2, NULL, ZVAL_PTR_DTOR, 1);
-	}
 	return;
 }
 /* }}} */
@@ -545,24 +538,6 @@ zval * gene_cache_get_quick(char *keyString, int keyString_len TSRMLS_DC) {
 }
 /* }}} */
 
-/** {{{ zval * gene_params(char *keyString, int keyString_len,char *path TSRMLS_DC)
- */
-zval * gene_params(char *keyString, int keyString_len TSRMLS_DC) {
-	zval **ret = NULL, *all = NULL;
-
-	if (keyString != NULL
-			&& zend_hash_find(GENE_G(params), keyString, keyString_len + 1,
-					(void **) &ret) == SUCCESS) {
-		return gene_cache_zval_losable(*ret TSRMLS_CC);
-	} else {
-		MAKE_STD_ZVAL(all);
-		array_init(all);
-		gene_cache_copy_losable(all->value.ht, GENE_G(params) TSRMLS_CC);
-		return all;
-	}
-	return NULL;
-}
-/* }}} */
 
 /** {{{ zval * gene_cache_get_by_config(char *keyString, int keyString_len,char *path TSRMLS_DC)
  */

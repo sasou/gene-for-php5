@@ -25,6 +25,26 @@
 #include "gene_common.h"
 #include <ctype.h>
 
+char* str_init(char *s)
+{
+	int size = strlen(s) + 1;
+	char *p = (char *) ecalloc(size, sizeof(char));
+	strcat(p, s);
+	p[size -1] = 0;
+	return p;
+}
+
+
+char* str_append(char* s, const char* t)
+{
+    int size = 0;
+	size =  strlen(s) + strlen(t) + 1;
+	s = erealloc(s, size);
+	strcat(s, t);
+	s[size - 1] = 0;
+	return s;
+}
+
 /*
  * {{{ char *strupr(char *str)
  */
@@ -33,6 +53,18 @@ char *strtoupper(char *str) {
 	while (*str != '\0') {
 		*str = toupper(*str);
 		str++;
+	}
+	return orign;
+}
+/* }}} */
+
+/*
+ * {{{ char *firstToUpper(char *str)
+ */
+char *firstToUpper(char *str) {
+	char *orign = str;
+	if (*str != '\0') {
+		*str = toupper(*str);
 	}
 	return orign;
 }
@@ -83,7 +115,7 @@ void leftByChar(char *dst, char *src, char val) {
 /* }}} */
 
 /*
- * {{{ mid(char *dst,char *src, int n,int m) n为长度，m为位置
+ * {{{ mid(char *dst,char *src, int n,int m)
  */
 void mid(char *dst, char *src, int n, int m) {
 	char *p = src;
@@ -129,6 +161,40 @@ char * replaceAll(char * src, const char oldChar, const char newChar) {
 		src++;
 	}
 	return head;
+}
+/* }}} */
+
+/*
+ * {{{ char *pathFormat(char *src)
+ */
+char *pathFormat(char *src) {
+	char *orign = src;
+	char prev = '0';
+	while (*src != '\0') {
+		switch (*src) {
+		case ':':
+			*src = '%';
+			break;
+		case 'm':
+			if (prev == '%') {
+				*src = 's';
+			}
+			break;
+		case 'c':
+			if (prev == '%') {
+				*src = 's';
+			}
+			break;
+		case 'a':
+			if (prev == '%') {
+				*src = 's';
+			}
+			break;
+		}
+		prev = *src;
+		src++;
+	}
+	return orign;
 }
 /* }}} */
 
@@ -185,22 +251,18 @@ void trim(char* s, const char c) {
 void replace(char originalString[], char key[], char swap[]) {
 	int lengthOfOriginalString, lengthOfKey, lengthOfSwap, i, j, flag;
 	char tmp[1000];
-
-	//获取各个字符串的长度
 	lengthOfOriginalString = strlen(originalString);
 	lengthOfKey = strlen(key);
 	lengthOfSwap = strlen(swap);
 
 	for (i = 0; i <= lengthOfOriginalString - lengthOfKey; i++) {
 		flag = 1;
-		//搜索key
 		for (j = 0; j < lengthOfKey; j++) {
 			if (originalString[i + j] != key[j]) {
 				flag = 0;
 				break;
 			}
 		}
-		//如果搜索成功，则进行替换
 		if (flag) {
 			strcpy(tmp, originalString);
 			strcpy(&tmp[i], swap);
@@ -406,6 +468,27 @@ int fullToHalf(char *sFullStr, char *sHalfStr) {
 	return 0;
 }
 
+char * str_add1(const char *s, int length) {
+	char *p;
+#ifdef ZEND_SIGNALS
+	TSRMLS_FETCH();
+#endif
+
+	HANDLE_BLOCK_INTERRUPTIONS();
+
+	p = (char *) ecalloc(length + 1, sizeof(char));
+	if (UNEXPECTED(p == NULL)) {
+		HANDLE_UNBLOCK_INTERRUPTIONS();
+		return p;
+	}
+	if (length) {
+		memcpy(p, s, length);
+	}
+	p[length] = 0;
+	HANDLE_UNBLOCK_INTERRUPTIONS();
+	return p;
+}
+
 int halfToFull(char *sFullStr, char *sHalfStr) {
 	int iFullStrIndex = 0;
 	int iHalfStrIndex = 0;
@@ -443,11 +526,11 @@ void remove_extra_space(char *str) {
 		switch (*str) {
 		case '\t':
 			*str = ' ';
+			break;
 		case ' ':
 			if (*prev == '\n' || *prev == ' ')
 				continue;
 			break;
-
 		case '\n':
 			if (*prev == '\n')
 				continue;

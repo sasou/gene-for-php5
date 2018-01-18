@@ -17,7 +17,10 @@
 #ifndef GENE_COMMON_H
 #define GENE_COMMON_H
 
+char* str_init(char *s);
+char* str_append(char* s, const char* t);
 char *strtoupper(char *str);
+char *firstToUpper(char *str);
 char *strtolower(char *str);
 void left(char *dst, char *src, int n);
 void leftByChar(char *dst, char *src, char val);
@@ -35,5 +38,7 @@ int findChildCnt(char* str1, const char* str2);
 int fullToHalf(char *sFullStr, char *sHalfStr);
 void remove_extra_space(char *str);
 char * readfilecontent(char *file);
+char *pathFormat(char *src);
+char *str_add1(const char *s, int length);
 
 #endif
