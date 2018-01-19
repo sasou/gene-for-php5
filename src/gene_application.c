@@ -408,7 +408,7 @@ PHP_METHOD(gene_application, run) {
 	} else {
 		ZVAL_STRING(safe, GENE_G(directory), 1);
 	}
-    init();
+	init();
 	get_router_content_run(methodin, pathin, safe TSRMLS_CC);
 	if (safe) {
 		zval_ptr_dtor(&safe);

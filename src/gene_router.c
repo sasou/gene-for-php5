@@ -70,32 +70,25 @@ int setMca(char *key, int len, char *val TSRMLS_DC) {
 	if (len == 2) {
 		switch (key[0]) {
 		case 'm':
-			GENE_G(router_path) = str_append(GENE_G(router_path), "/");
-			GENE_G(router_path) = str_append(GENE_G(router_path), val);
-			MAKE_STD_ZVAL(sval);
-			firstToUpper(val);
-			ZVAL_STRING(sval, val, 1);
-			zend_hash_update(&EG(symbol_table), "m", 2, &sval, sizeof(zval*), NULL);
+			if (GENE_G(module)) {
+				efree(GENE_G(module));
+			}
+			GENE_G(module) = str_init(val);
 			break;
 		case 'c':
-			GENE_G(router_path) = str_append(GENE_G(router_path), "/");
-			GENE_G(router_path) = str_append(GENE_G(router_path), val);
-			MAKE_STD_ZVAL(sval);
-			firstToUpper(val);
-			ZVAL_STRING(sval, val, 1);
-			zend_hash_update(&EG(symbol_table), "c", 2, &sval, sizeof(zval*), NULL);
+			if (GENE_G(controller)) {
+				efree(GENE_G(controller));
+			}
+			GENE_G(controller) = str_init(val);
 			break;
 		case 'a':
-			GENE_G(router_path) = str_append(GENE_G(router_path), "/");
-			GENE_G(router_path) = str_append(GENE_G(router_path), val);
-			MAKE_STD_ZVAL(sval);
-			ZVAL_STRING(sval, val, 1);
-			zend_hash_update(&EG(symbol_table), "a", 2, &sval, sizeof(zval*), NULL);
+			if (GENE_G(action)) {
+				efree(GENE_G(action));
+			}
+			GENE_G(action) = str_init(val);
 			break;
 		}
 	} else {
-		GENE_G(router_path) = str_append(GENE_G(router_path), "/:");
-		GENE_G(router_path) = str_append(GENE_G(router_path), key);
 		if (zend_hash_find(&EG(symbol_table), "params", 7, (void **) &params) == SUCCESS) {
 			add_assoc_string_ex(*params, key, len, val, 1);
 		}
@@ -104,7 +97,21 @@ int setMca(char *key, int len, char *val TSRMLS_DC) {
 }
 /* }}} */
 
-
+/** {{{ void gene_router_set_uri(zval **leaf TSRMLS_DC)
+ */
+void gene_router_set_uri(zval **leaf TSRMLS_DC) {
+	zval **key;
+	if (zend_hash_find((*leaf)->value.ht, "key", 4,  (void **) &key) == SUCCESS) {
+		if (Z_STRLEN_PP(key)) {
+			if (GENE_G(router_path)) {
+				efree(GENE_G(router_path));
+				GENE_G(router_path) = NULL;
+			}
+			GENE_G(router_path) = estrndup(Z_STRVAL_PP(key), Z_STRLEN_PP(key));
+		}
+	}
+}
+/* }}} */
 
 /** {{{ static void get_path_router(char *keyString, int keyString_len TSRMLS_DC)
  */
@@ -194,14 +201,16 @@ int get_router_info(zval **leaf, zval **cacheHook TSRMLS_DC) {
 	zval **hname, **before, **after, **m, **h;
 	int size = 0, is = 1;
 	char *run = NULL, *hookname = NULL, *seg = NULL, *ptr = NULL;
+	gene_router_set_uri(leaf TSRMLS_CC);
 	if (zend_hash_find((*leaf)->value.ht, "hook", 5, (void **) &hname) == SUCCESS) {
 		spprintf(&hookname, 0, "hook:%s", Z_STRVAL_PP(hname));
 	}
 	if (hookname) {
 		seg = php_strtok_r(hookname, "@", &ptr);
 	}
-	size = 1;
-	run = (char *) ecalloc(1, sizeof(char));
+	size = strlen(GENE_ROUTER_CHIRD_PRE) + 1;
+	run = (char *) ecalloc(size, sizeof(char));
+	strcat(run, GENE_ROUTER_CHIRD_PRE);
 	run[size - 1] = 0;
 	if (ptr && strlen(ptr) > 0) {
 		if ((strcmp(ptr, "clearBefore") == 0) || (strcmp(ptr, "clearAll") == 0)) {
@@ -630,7 +639,6 @@ PHP_METHOD(gene_router, run) {
 	} else {
 		ZVAL_STRING(safein, "", 1);
 	}
-	init();
 	get_router_content_run(methodin, pathin, safein TSRMLS_CC);
 	if (safein) {
 		zval_ptr_dtor(&safein);

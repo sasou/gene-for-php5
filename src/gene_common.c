@@ -38,11 +38,12 @@ char* str_init(char *s)
 char* str_append(char* s, const char* t)
 {
     int size = 0;
+    char *p = NULL;
 	size =  strlen(s) + strlen(t) + 1;
-	s = erealloc(s, size);
-	strcat(s, t);
-	s[size - 1] = 0;
-	return s;
+	p = erealloc(s, size);
+	strcat(p, t);
+	p[size - 1] = 0;
+	return p;
 }
 
 /*
@@ -65,6 +66,18 @@ char *firstToUpper(char *str) {
 	char *orign = str;
 	if (*str != '\0') {
 		*str = toupper(*str);
+	}
+	return orign;
+}
+/* }}} */
+
+/*
+ * {{{ char *firstToUpper(char *str)
+ */
+char *firstToLower(char *str) {
+	char *orign = str;
+	if (*str != '\0') {
+		*str = tolower(*str);
 	}
 	return orign;
 }
@@ -352,33 +365,10 @@ char * replace_string(char * string, char source, const char * destination) {
 }
 /* }}} */
 
-int StrReplace(char strRes[], char from[], char to[]) {
-	int i, flag = 0;
-	char *p, *q, *ts;
-	for (i = 0; strRes[i]; ++i) {
-		if (strRes[i] == from[0]) {
-			p = strRes + i;
-			q = from;
-			while (*q && (*p++ == *q++))
-				;
-			if (*q == '\0') {
-				ts = (char *) malloc(strlen(strRes) + 1);
-				strcpy(ts, p);
-				strRes[i] = '\0';
-				strcat(strRes, to);
-				strcat(strRes, ts);
-				free(ts);
-				flag = 1;
-			}
-		}
-	}
-	return flag;
-}
-
 /*
  * {{{ char * replace_string (char * string, const char * source, const char * destination )
  */
-int ReplaceStr(char* sSrc, char* sMatchStr, char* sReplaceStr) {
+int ReplaceStrEasy(char* sSrc, char* sMatchStr, char* sReplaceStr) {
 	int StringLen;
 	char caNewString[500];
 	char* FindPos;
@@ -564,6 +554,92 @@ char *readfilecontent(char *file) {
 		fclose(fp);
 	}
 	return tmp;
+}
+
+char * strreplace(char *original, char *pattern, char *replacement)
+{
+  int replen = strlen(replacement);
+  int patlen = strlen(pattern);
+  int orilen = strlen(original);
+
+  int patcnt = 0;
+  char * oriptr;
+  char * patloc;
+
+  // find how many times the pattern occurs in the original string
+  for (oriptr = original; (patloc = strstr(oriptr, pattern)); oriptr = patloc + patlen)
+  {
+    patcnt++;
+  }
+
+  {
+    // allocate memory for the new string
+	int const retlen = orilen + patcnt * (replen - patlen);
+    char *returned = (char *) ecalloc(retlen + 1,  sizeof(char));
+
+    if (returned != NULL)
+    {
+      // copy the original string,
+      // replacing all the instances of the pattern
+      char * retptr = returned;
+      for (oriptr = original; (patloc = strstr(oriptr, pattern)); oriptr = patloc + patlen)
+      {
+    	int skplen = patloc - oriptr;
+        // copy the section until the occurence of the pattern
+        strncpy(retptr, oriptr, skplen);
+        retptr += skplen;
+        // copy the replacement
+        strncpy(retptr, replacement, replen);
+        retptr += replen;
+      }
+      // copy the rest of the string.
+      strcpy(retptr, oriptr);
+    }
+    efree(original);
+    return returned;
+  }
+}
+
+char *strreplace2(char *src, char *from, char *to)
+{
+   int size    = strlen(src) + 1;
+   int fromlen = strlen(from);
+   int tolen   = strlen(to);
+   char *value = ecalloc(size, sizeof(char));
+   char *dst = value;
+   if ( value != NULL )
+   {
+      for ( ;; )
+      {
+         const char *match = strstr(src, from);
+         if ( match != NULL )
+         {
+        	int count = match - src;
+            char *temp;
+            size += tolen - fromlen;
+            temp = erealloc(value, size);
+            if ( temp == NULL )
+            {
+               free(value);
+               return NULL;
+            }
+            dst = temp + (dst - value);
+            value = temp;
+            memmove(dst, src, count);
+            src += count;
+            dst += count;
+            memmove(dst, to, tolen);
+            src += fromlen;
+            dst += tolen;
+         }
+         else /* No match found. */
+         {
+            strcpy(dst, src);
+            break;
+         }
+      }
+   }
+   return value;
 }
 
 /*

@@ -31,7 +31,7 @@ void trim(char* s, const char c);
 char * insert_string(char * string, const char * source,
 		const char * destination);
 char * replace_string(char * string, char source, const char * destination);
-int ReplaceStr(char* sSrc, char* sMatchStr, char* sReplaceStr);
+int ReplaceStrEasy(char* sSrc, char* sMatchStr, char* sReplaceStr);
 char * insertAll(char * dest, char * src, char oldChar, char newChar);
 void replace(char originalString[], char key[], char swap[]);
 int findChildCnt(char* str1, const char* str2);
@@ -40,5 +40,7 @@ void remove_extra_space(char *str);
 char * readfilecontent(char *file);
 char *pathFormat(char *src);
 char *str_add1(const char *s, int length);
+char *strreplace(char *src, char *from, char *to);
+char *strreplace2(char *src, char *from, char *to);
 
 #endif

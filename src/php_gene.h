@@ -74,6 +74,9 @@ ZEND_BEGIN_MODULE_GLOBALS(gene)
 	char 		*app_key;
 	char 		*auto_load_fun;
 	char 		*child_views;
+	char 		*module;
+	char 		*controller;
+	char 		*action;
     zend_bool   gene_error;
     zend_bool   gene_exception;
     zend_bool   run_environment;
