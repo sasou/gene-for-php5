@@ -174,12 +174,10 @@ PHP_METHOD(gene_request, isAjax) {
 			&& strncasecmp("XMLHttpRequest", Z_STRVAL_P(header),
 					Z_STRLEN_P(header)) == 0) {
 		zval_ptr_dtor(&header);
-		RETURN_TRUE
-		;
+		RETURN_TRUE;
 	}
 	zval_ptr_dtor(&header);
-	RETURN_FALSE
-	;
+	RETURN_FALSE;
 }
 /* }}} */
 
@@ -190,8 +188,7 @@ PHP_METHOD(gene_request, getMethod) {
 	if (GENE_G(method)) {
 		RETURN_STRING(GENE_G(method), 1);
 	}
-	RETURN_NULL()
-	;
+	RETURN_NULL();
 }
 /* }}} */
 
@@ -247,8 +244,7 @@ zend_function_entry gene_request_methods[] = {
  */
 GENE_MINIT_FUNCTION(request) {
 	zend_class_entry gene_request;
-	GENE_INIT_CLASS_ENTRY(gene_request, "Gene_Request", "Gene\\Request",
-			gene_request_methods);
+	GENE_INIT_CLASS_ENTRY(gene_request, "Gene_Request", "Gene\\Request", gene_request_methods);
 	gene_request_ce = zend_register_internal_class(&gene_request TSRMLS_CC);
 
 	//debug

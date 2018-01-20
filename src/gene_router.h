@@ -27,7 +27,6 @@
 #define GENE_ROUTER_LEAF_HOOK_L "%s/%s/leaf/hook"
 #define GENE_ROUTER_LEAF_KEY_L "%s/%s/leaf/key"
 #define GENE_ROUTER_CHIRD "chird/"
-#define GENE_ROUTER_CHIRD_PRE  "gene_init();"
 #define GENE_ROUTER_CONTENT_B  "$gene_b=new %s;$gene_h=$gene_b->%s($params);if(isset($gene_h)&&($gene_h==0))return;"
 #define GENE_ROUTER_CONTENT_A  "$gene_a= new %s;$gene_a->%s($gene_mp);"
 #define GENE_ROUTER_CONTENT_M  "$obj=\"%s\";$gene_m=new $obj;$gene_mp=$gene_m->%s($params);"
@@ -39,7 +38,7 @@
 
 extern zend_class_entry *gene_router_ce;
 
-int init();
+void init();
 zval * request_query(int type, char * name, int len TSRMLS_DC);
 void get_router_content_run(char *methodin,char *pathin,zval *safe TSRMLS_DC);
 

@@ -45,10 +45,8 @@ ZEND_BEGIN_ARG_INFO_EX(gene_controller_void_arginfo, 0, 0, 0) ZEND_END_ARG_INFO(
  */
 PHP_METHOD(gene_controller, __construct) {
 	int debug = 0;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l",
-			&debug) == FAILURE) {
-		RETURN_NULL()
-		;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l", &debug) == FAILURE) {
+		RETURN_NULL();
 	}
 	gene_ini_router(TSRMLS_C);
 	RETURN_NULL()
@@ -185,14 +183,12 @@ PHP_METHOD(gene_controller, redirect) {
 	int url_len;
 	long code = 302;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|l", &url,
-			&url_len) == FAILURE) {
-		return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|l", &url, &url_len) == FAILURE) {
+		RETURN_NULL();
 	}
 
 	if (!url_len) {
-		RETURN_FALSE
-		;
+		RETURN_NULL();
 	}
 
 	RETURN_BOOL(gene_response_set_redirect(url, code TSRMLS_CC));
@@ -205,9 +201,8 @@ PHP_METHOD(gene_controller, display) {
 	char *file;
 	int file_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &file,
-			&file_len) == FAILURE) {
-		return;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &file, &file_len) == FAILURE) {
+		RETURN_NULL();
 	}
 	if (file_len) {
 		gene_view_display(file TSRMLS_CC);
@@ -218,20 +213,24 @@ PHP_METHOD(gene_controller, display) {
 /** {{{ public gene_controller::display(string $file)
  */
 PHP_METHOD(gene_controller, displayExt) {
-	char *file, *parent_file = NULL;
+	char *file = NULL, *parent_file = NULL;
 	int file_len = 0, parent_file_len = 0;
 	zend_bool isCompile = 0;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|sb", &file,
-			&file_len, &parent_file, &parent_file_len, &isCompile) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|sb", &file, &file_len, &parent_file, &parent_file_len, &isCompile) == FAILURE) {
 		return;
 	}
 	if (parent_file_len) {
+		if (GENE_G(child_views)) {
+			efree(GENE_G(child_views));
+			GENE_G(child_views) = NULL;
+		}
 		GENE_G(child_views) = estrndup(file, file_len);
 		gene_view_display_ext(parent_file, isCompile TSRMLS_CC);
 	} else {
 		gene_view_display_ext(file, isCompile TSRMLS_CC);
 	}
+	RETURN_NULL();
 }
 /* }}} */
 
@@ -239,6 +238,7 @@ PHP_METHOD(gene_controller, displayExt) {
  */
 PHP_METHOD(gene_controller, contains) {
 	gene_view_display_ext(GENE_G(child_views), 0 TSRMLS_CC);
+	RETURN_NULL();
 }
 /* }}} */
 

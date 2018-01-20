@@ -167,16 +167,14 @@ void gene_cache_init(TSRMLS_D) {
 		if (!GENE_G(cache)) {
 			return;
 		}
-		zend_hash_init(GENE_G(cache), 10, NULL, (dtor_func_t ) gene_cache_dtor,
-				1);
+		zend_hash_init(GENE_G(cache), 10, NULL, (dtor_func_t ) gene_cache_dtor, 1);
 	}
 	if (!GENE_G(cache_easy)) {
 		GENE_G(cache_easy) = (HashTable *) pemalloc(sizeof(HashTable), 1);
 		if (!GENE_G(cache_easy)) {
 			return;
 		}
-		zend_hash_init(GENE_G(cache_easy), 10, NULL,
-				(dtor_func_t ) gene_cache_easy_dtor, 1);
+		zend_hash_init(GENE_G(cache_easy), 10, NULL, (dtor_func_t ) gene_cache_easy_dtor, 1);
 	}
 	return;
 }

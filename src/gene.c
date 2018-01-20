@@ -71,9 +71,6 @@ static void php_gene_init_globals()
 	GENE_G(cache_easy) = NULL;
 	GENE_G(auto_load_fun) = NULL;
 	GENE_G(child_views) = NULL;
-    GENE_G(module) = NULL;
-    GENE_G(controller) = NULL;
-    GENE_G(action) = NULL;
 	gene_cache_init(TSRMLS_C);
 }
 /* }}} */
@@ -181,18 +178,6 @@ PHP_MSHUTDOWN_FUNCTION(gene)
     	efree(GENE_G(child_views));
     	GENE_G(child_views) = NULL;
     }
-    if (GENE_G(module)) {
-    	efree(GENE_G(module));
-    	GENE_G(module) = NULL;
-    }
-    if (GENE_G(controller)) {
-    	efree(GENE_G(controller));
-    	GENE_G(controller) = NULL;
-    }
-    if (GENE_G(action)) {
-    	efree(GENE_G(action));
-    	GENE_G(action) = NULL;
-    }
 	if (GENE_G(cache)) {
 		zend_hash_destroy(GENE_G(cache));
 		pefree(GENE_G(cache), 1);
@@ -263,18 +248,6 @@ PHP_RSHUTDOWN_FUNCTION(gene)
     	efree(GENE_G(app_key));
     	GENE_G(app_key) = NULL;
     }
-    if (GENE_G(module)) {
-    	efree(GENE_G(module));
-    	GENE_G(module) = NULL;
-    }
-    if (GENE_G(controller)) {
-    	efree(GENE_G(controller));
-    	GENE_G(controller) = NULL;
-    }
-    if (GENE_G(action)) {
-    	efree(GENE_G(action));
-    	GENE_G(action) = NULL;
-    }
 	return SUCCESS;
 }
 /* }}} */
@@ -320,22 +293,6 @@ PHP_FUNCTION(gene_version) {
 	RETURN_STRING(PHP_GENE_VERSION, 1);
 }
 
-PHP_FUNCTION(gene_init) {
-	zval *c = NULL,*a = NULL;
-	//if (zend_hash_find(EG(active_symbol_table), "params", 7, (void **) &ret) == SUCCESS) {
-
-	//}
-	MAKE_STD_ZVAL(c);
-	ZVAL_STRING(c, GENE_G(controller), 1);
-	zend_hash_update(&EG(symbol_table), "c", 2, &c, sizeof(zval*), NULL);
-
-	MAKE_STD_ZVAL(a);
-	ZVAL_STRING(a, GENE_G(action), 1);
-	zend_hash_update(&EG(symbol_table), "a", 2, &a, sizeof(zval*), NULL);
-
-	RETURN_NULL();
-}
-
 /* {{{ gene_functions[]
  *
  * Every user visible function must have an entry in gene_functions[].
@@ -343,7 +300,6 @@ PHP_FUNCTION(gene_init) {
 zend_function_entry gene_functions[] = {
 	PHP_FE(gene_urlParams,NULL)
 	PHP_FE(gene_version,NULL)
-	PHP_FE(gene_init,NULL)
 	PHP_FE_END
 };
 /* }}} */

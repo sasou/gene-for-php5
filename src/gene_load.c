@@ -35,14 +35,15 @@ zend_class_entry * gene_load_ce;
  */
 int gene_load_import(char *path TSRMLS_DC) {
 	zend_file_handle file_handle;
-	zend_op_array *op_array;
-	char realpath[MAXPATHLEN];
+	zend_op_array *op_array = NULL;
+	char *realpath;
 
+	realpath = (char *) ecalloc(MAXPATHLEN, sizeof(char));
 	if (!VCWD_REALPATH(path, realpath)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
-				"Unable to load class file %s", path);
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to load class file %s", path);
 		return 0;
 	}
+    efree(realpath);
 
 	file_handle.filename = path;
 	file_handle.free_filename = 0;
@@ -52,7 +53,7 @@ int gene_load_import(char *path TSRMLS_DC) {
 
 	op_array = zend_compile_file(&file_handle, ZEND_INCLUDE TSRMLS_CC);
 
-	if (op_array && file_handle.handle.stream.handle) {
+	if (file_handle.handle.stream.handle) {
 		int dummy = 1;
 
 		if (!file_handle.opened_path) {
@@ -68,8 +69,7 @@ int gene_load_import(char *path TSRMLS_DC) {
 	if (op_array) {
 		zval *result = NULL;
 
-		GENE_STORE_EG_ENVIRON()
-		;
+		GENE_STORE_EG_ENVIRON();
 
 		EG(return_value_ptr_ptr) = &result;
 		EG(active_op_array) = op_array;
@@ -96,8 +96,7 @@ int gene_load_import(char *path TSRMLS_DC) {
 				zval_ptr_dtor(EG(return_value_ptr_ptr));
 			}
 		}
-		GENE_RESTORE_EG_ENVIRON()
-		;
+		GENE_RESTORE_EG_ENVIRON();
 		return 1;
 	}
 

@@ -235,8 +235,33 @@ PHP_METHOD(gene_application, getAction) {
  * {{{ public gene_application::getRouterUri()
  */
 PHP_METHOD(gene_application, getRouterUri) {
-	if (GENE_G(router_path)) {
-		RETURN_STRING(GENE_G(router_path), 1);
+	zval **ret = NULL;
+	char *path = NULL,*tmp = NULL;
+	if (!GENE_G(router_path)) {
+		RETURN_NULL();
+	}
+
+	path = str_init(GENE_G(router_path));
+	if (zend_hash_find(&EG(symbol_table), "m", 2, (void **) &ret) == SUCCESS) {
+		tmp = strreplace2(path, ":m", (*ret)->value.str.val);
+		efree(path);
+		path = tmp;
+	}
+
+	if (zend_hash_find(&EG(symbol_table), "c", 2, (void **) &ret) == SUCCESS) {
+		tmp = strreplace2(path, ":c", (*ret)->value.str.val);
+		strtolower(tmp);
+		efree(path);
+		path = tmp;
+	}
+
+	if (zend_hash_find(&EG(symbol_table), "a", 2, (void **) &ret) == SUCCESS) {
+		tmp = strreplace2(path, ":a", (*ret)->value.str.val);
+		efree(path);
+		path = tmp;
+	}
+	if (path) {
+		RETURN_STRING(path, 1);
 	}
 	RETURN_NULL();
 }
