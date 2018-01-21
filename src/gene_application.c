@@ -292,14 +292,12 @@ PHP_METHOD(gene_application, config) {
 	} else {
 		router_e_len = spprintf(&router_e, 0, "%s%s", GENE_G(directory), GENE_CONFIG_CACHE);
 	}
-	cache = gene_cache_get_by_config(router_e, router_e_len,
-			keyString TSRMLS_CC);
+	cache = gene_cache_get_by_config(router_e, router_e_len, keyString TSRMLS_CC);
 	efree(router_e);
 	if (cache) {
 		RETURN_ZVAL(cache, 1, 1);
 	}
-	RETURN_NULL()
-	;
+	RETURN_NULL();
 }
 /* }}} */
 
@@ -369,8 +367,7 @@ PHP_METHOD(gene_application, exception) {
 PHP_METHOD(gene_application, setMode) {
 	zval *self = getThis();
 	long error_type = 0, exception_type = 0;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|ll", &error_type,
-			&exception_type) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|ll", &error_type, &exception_type) == FAILURE) {
 		return;
 	}
 	if (error_type > 0) {

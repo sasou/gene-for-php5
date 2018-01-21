@@ -106,6 +106,8 @@ void gene_router_set_uri(zval **leaf TSRMLS_DC) {
 				efree(GENE_G(router_path));
 			}
 			GENE_G(router_path) = estrndup(Z_STRVAL_PP(key), Z_STRLEN_PP(key));
+		} else {
+			GENE_G(router_path) = str_init("");
 		}
 	}
 }
