@@ -75,6 +75,52 @@ static void php_gene_init_globals()
 }
 /* }}} */
 
+/* {{{ php_gene_close_globals
+ */
+static void php_gene_close_globals() {
+    if (GENE_G(directory)) {
+    	efree(GENE_G(directory));
+    	GENE_G(directory) = NULL;
+    }
+    if (GENE_G(app_root)) {
+    	efree(GENE_G(app_root));
+    	GENE_G(app_root) = NULL;
+    }
+    if (GENE_G(app_view)) {
+    	efree(GENE_G(app_view));
+    	GENE_G(app_view) = NULL;
+    }
+    if (GENE_G(app_ext)) {
+    	efree(GENE_G(app_ext));
+    	GENE_G(app_ext) = NULL;
+    }
+    if (GENE_G(method)) {
+    	efree(GENE_G(method));
+    	GENE_G(method) = NULL;
+    }
+    if (GENE_G(path)) {
+    	efree(GENE_G(path));
+    	GENE_G(path) = NULL;
+    }
+    if (GENE_G(router_path)) {
+    	efree(GENE_G(router_path));
+    	GENE_G(router_path) = NULL;
+    }
+    if (GENE_G(auto_load_fun)) {
+    	efree(GENE_G(auto_load_fun));
+    	GENE_G(auto_load_fun) = NULL;
+    }
+    if (GENE_G(child_views)) {
+    	efree(GENE_G(child_views));
+    	GENE_G(child_views) = NULL;
+    }
+    if (GENE_G(app_key)) {
+    	efree(GENE_G(app_key));
+    	GENE_G(app_key) = NULL;
+    }
+}
+/* }}} */
+
 /* {{{ php_gene_init_auto_globals
  */
 static void php_gene_init_auto_globals()
@@ -142,42 +188,8 @@ PHP_MSHUTDOWN_FUNCTION(gene)
 	/* uncomment this line if you have INI entries
 	UNREGISTER_INI_ENTRIES();
 	*/
-    if (GENE_G(directory)) {
-    	efree(GENE_G(directory));
-    	GENE_G(directory) = NULL;
-    }
-    if (GENE_G(app_root)) {
-    	efree(GENE_G(app_root));
-    	GENE_G(app_root) = NULL;
-    }
-    if (GENE_G(app_view)) {
-    	efree(GENE_G(app_view));
-    	GENE_G(app_view) = NULL;
-    }
-    if (GENE_G(app_ext)) {
-    	efree(GENE_G(app_ext));
-    	GENE_G(app_ext) = NULL;
-    }
-    if (GENE_G(method)) {
-    	efree(GENE_G(method));
-    	GENE_G(method) = NULL;
-    }
-    if (GENE_G(path)) {
-    	efree(GENE_G(path));
-    	GENE_G(path) = NULL;
-    }
-    if (GENE_G(router_path)) {
-    	efree(GENE_G(router_path));
-    	GENE_G(router_path) = NULL;
-    }
-    if (GENE_G(auto_load_fun)) {
-    	efree(GENE_G(auto_load_fun));
-    	GENE_G(auto_load_fun) = NULL;
-    }
-    if (GENE_G(child_views)) {
-    	efree(GENE_G(child_views));
-    	GENE_G(child_views) = NULL;
-    }
+	php_gene_close_globals();
+
 	if (GENE_G(cache)) {
 		zend_hash_destroy(GENE_G(cache));
 		pefree(GENE_G(cache), 1);
@@ -198,7 +210,6 @@ PHP_MSHUTDOWN_FUNCTION(gene)
  */
 PHP_RINIT_FUNCTION(gene)
 {
-	php_gene_init_auto_globals();
 	return SUCCESS;
 }
 /* }}} */
@@ -208,46 +219,7 @@ PHP_RINIT_FUNCTION(gene)
  */
 PHP_RSHUTDOWN_FUNCTION(gene)
 {
-    if (GENE_G(directory)) {
-    	efree(GENE_G(directory));
-    	GENE_G(directory) = NULL;
-    }
-    if (GENE_G(app_root)) {
-    	efree(GENE_G(app_root));
-    	GENE_G(app_root) = NULL;
-    }
-    if (GENE_G(app_view)) {
-    	efree(GENE_G(app_view));
-    	GENE_G(app_view) = NULL;
-    }
-    if (GENE_G(app_ext)) {
-    	efree(GENE_G(app_ext));
-    	GENE_G(app_ext) = NULL;
-    }
-    if (GENE_G(method)) {
-    	efree(GENE_G(method));
-    	GENE_G(method) = NULL;
-    }
-    if (GENE_G(path)) {
-    	efree(GENE_G(path));
-    	GENE_G(path) = NULL;
-    }
-    if (GENE_G(router_path)) {
-    	efree(GENE_G(router_path));
-    	GENE_G(router_path) = NULL;
-    }
-    if (GENE_G(auto_load_fun)) {
-    	efree(GENE_G(auto_load_fun));
-    	GENE_G(auto_load_fun) = NULL;
-    }
-    if (GENE_G(child_views)) {
-    	efree(GENE_G(child_views));
-    	GENE_G(child_views) = NULL;
-    }
-    if (GENE_G(app_key)) {
-    	efree(GENE_G(app_key));
-    	GENE_G(app_key) = NULL;
-    }
+    php_gene_init_auto_globals();
 	return SUCCESS;
 }
 /* }}} */

@@ -556,6 +556,27 @@ char *readfilecontent(char *file) {
 	return tmp;
 }
 
+char * str_add(const char *s, int length) {
+	char *p;
+#ifdef ZEND_SIGNALS
+	TSRMLS_FETCH();
+#endif
+
+	HANDLE_BLOCK_INTERRUPTIONS();
+
+	p = (char *) calloc(length + 1, sizeof(char));
+	if (UNEXPECTED(p == NULL)) {
+		HANDLE_UNBLOCK_INTERRUPTIONS();
+		return p;
+	}
+	if (length) {
+		memcpy(p, s, length);
+	}
+	p[length] = 0;
+	HANDLE_UNBLOCK_INTERRUPTIONS();
+	return p;
+}
+
 char * strreplace(char *original, char *pattern, char *replacement)
 {
   int replen = strlen(replacement);

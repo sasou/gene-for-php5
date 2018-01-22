@@ -32,30 +32,9 @@
 zend_class_entry * gene_cache_ce;
 
 static zval * gene_cache_zval_persistent(zval *zvalue TSRMLS_DC);
-static void gene_cache_copy_persistent(HashTable *pdst,
-		HashTable *src TSRMLS_DC);
+static void gene_cache_copy_persistent(HashTable *pdst, HashTable *src TSRMLS_DC);
 static void gene_cache_copy_losable(HashTable *pdst, HashTable *src TSRMLS_DC);
 
-char * str_add(const char *s, int length) {
-	char *p;
-#ifdef ZEND_SIGNALS
-	TSRMLS_FETCH();
-#endif
-
-	HANDLE_BLOCK_INTERRUPTIONS();
-
-	p = (char *) calloc(length + 1, sizeof(char));
-	if (UNEXPECTED(p == NULL)) {
-		HANDLE_UNBLOCK_INTERRUPTIONS();
-		return p;
-	}
-	if (length) {
-		memcpy(p, s, length);
-	}
-	p[length] = 0;
-	HANDLE_UNBLOCK_INTERRUPTIONS();
-	return p;
-}
 
 /** {{{ static void gene_cache_dtor(gene_cache_container **cache)
  */
