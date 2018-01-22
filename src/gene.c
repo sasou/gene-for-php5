@@ -210,6 +210,7 @@ PHP_MSHUTDOWN_FUNCTION(gene)
  */
 PHP_RINIT_FUNCTION(gene)
 {
+	php_gene_init_auto_globals();
 	return SUCCESS;
 }
 /* }}} */
@@ -219,7 +220,7 @@ PHP_RINIT_FUNCTION(gene)
  */
 PHP_RSHUTDOWN_FUNCTION(gene)
 {
-    php_gene_init_auto_globals();
+	php_gene_close_globals();
 	return SUCCESS;
 }
 /* }}} */
