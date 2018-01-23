@@ -1102,14 +1102,20 @@ PHP_METHOD(gene_router, readFile) {
 /** {{{ public gene_router::display(string $file)
  */
 PHP_METHOD(gene_router, display) {
-	char *file;
-	int file_len;
+	char *file, *parent_file = NULL;
+	int file_len, parent_file_len = 0;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|l", &file,
-			&file_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|s", &file, &file_len, &parent_file, &parent_file_len) == FAILURE) {
 		return;
 	}
-	if (file_len) {
+	if (parent_file_len) {
+		if (GENE_G(child_views)) {
+			efree(GENE_G(child_views));
+			GENE_G(child_views) = NULL;
+		}
+		GENE_G(child_views) = estrndup(file, file_len);
+		gene_view_display(parent_file TSRMLS_CC);
+	} else {
 		gene_view_display(file TSRMLS_CC);
 	}
 }
@@ -1122,11 +1128,14 @@ PHP_METHOD(gene_router, displayExt) {
 	int file_len = 0, parent_file_len = 0;
 	zend_bool isCompile = 0;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|sb", &file,
-			&file_len, &parent_file, &parent_file_len, &isCompile) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|sb", &file, &file_len, &parent_file, &parent_file_len, &isCompile) == FAILURE) {
 		return;
 	}
 	if (parent_file_len) {
+		if (GENE_G(child_views)) {
+			efree(GENE_G(child_views));
+			GENE_G(child_views) = NULL;
+		}
 		GENE_G(child_views) = estrndup(file, file_len);
 		gene_view_display_ext(parent_file, isCompile TSRMLS_CC);
 	} else {
@@ -1162,15 +1171,12 @@ zend_function_entry gene_router_methods[] = {
  */
 GENE_MINIT_FUNCTION(router) {
 	zend_class_entry gene_router;
-	GENE_INIT_CLASS_ENTRY(gene_router, "Gene_Router", "Gene\\Router",
-			gene_router_methods);
+	GENE_INIT_CLASS_ENTRY(gene_router, "Gene_Router", "Gene\\Router", gene_router_methods);
 	gene_router_ce = zend_register_internal_class(&gene_router TSRMLS_CC);
 
 	//prop
-	zend_declare_property_string(gene_router_ce, GENE_ROUTER_SAFE,
-			strlen(GENE_ROUTER_SAFE), "", ZEND_ACC_PUBLIC TSRMLS_CC);
-	zend_declare_property_string(gene_router_ce, GENE_ROUTER_PREFIX,
-			strlen(GENE_ROUTER_PREFIX), "", ZEND_ACC_PUBLIC TSRMLS_CC);
+	zend_declare_property_string(gene_router_ce, GENE_ROUTER_SAFE, strlen(GENE_ROUTER_SAFE), "", ZEND_ACC_PUBLIC TSRMLS_CC);
+	zend_declare_property_string(gene_router_ce, GENE_ROUTER_PREFIX, strlen(GENE_ROUTER_PREFIX), "", ZEND_ACC_PUBLIC TSRMLS_CC);
 	//zend_declare_property_string(gene_router_ce, GENE_ROUTER_PREFIX, strlen(GENE_ROUTER_PREFIX), "", ZEND_ACC_PUBLIC TSRMLS_CC);
 	//
 	return SUCCESS;

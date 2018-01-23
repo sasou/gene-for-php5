@@ -198,13 +198,20 @@ PHP_METHOD(gene_controller, redirect) {
 /** {{{ public gene_controller::display(string $file)
  */
 PHP_METHOD(gene_controller, display) {
-	char *file;
-	int file_len;
+	char *file, *parent_file = NULL;
+	int file_len, parent_file_len = 0;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &file, &file_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|s", &file, &file_len, &parent_file, &parent_file_len) == FAILURE) {
 		RETURN_NULL();
 	}
-	if (file_len) {
+	if (parent_file_len) {
+		if (GENE_G(child_views)) {
+			efree(GENE_G(child_views));
+			GENE_G(child_views) = NULL;
+		}
+		GENE_G(child_views) = estrndup(file, file_len);
+		gene_view_display(parent_file TSRMLS_CC);
+	} else {
 		gene_view_display(file TSRMLS_CC);
 	}
 }
@@ -230,15 +237,20 @@ PHP_METHOD(gene_controller, displayExt) {
 	} else {
 		gene_view_display_ext(file, isCompile TSRMLS_CC);
 	}
-	RETURN_NULL();
 }
 /* }}} */
 
 /** {{{ public gene_controller::contains(string $file)
  */
 PHP_METHOD(gene_controller, contains) {
+	gene_view_display(GENE_G(child_views) TSRMLS_CC);
+}
+/* }}} */
+
+/** {{{ public gene_controller::contains(string $file)
+ */
+PHP_METHOD(gene_controller, containsExt) {
 	gene_view_display_ext(GENE_G(child_views), 0 TSRMLS_CC);
-	RETURN_NULL();
 }
 /* }}} */
 
@@ -267,6 +279,7 @@ zend_function_entry gene_controller_methods[] = {
 	PHP_ME(gene_controller, display, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(gene_controller, displayExt, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(gene_controller, contains, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	PHP_ME(gene_controller, containsExt, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_ME(gene_controller, __construct, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
 	{ NULL, NULL, NULL }
 };
@@ -277,10 +290,8 @@ zend_function_entry gene_controller_methods[] = {
  */
 GENE_MINIT_FUNCTION(controller) {
 	zend_class_entry gene_controller;
-	GENE_INIT_CLASS_ENTRY(gene_controller, "Gene_Controller",
-			"Gene\\Controller", gene_controller_methods);
-	gene_controller_ce = zend_register_internal_class(
-			&gene_controller TSRMLS_CC);
+	GENE_INIT_CLASS_ENTRY(gene_controller, "Gene_Controller", "Gene\\Controller", gene_controller_methods);
+	gene_controller_ce = zend_register_internal_class(&gene_controller TSRMLS_CC);
 
 	//debug
 	//zend_declare_property_null(gene_application_ce, GENE_EXECUTE_DEBUG, strlen(GENE_EXECUTE_DEBUG), ZEND_ACC_PUBLIC TSRMLS_CC);
