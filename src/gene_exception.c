@@ -28,86 +28,59 @@
 #include "gene_exception.h"
 #include "gene_router.h"
 #include "gene_view.h"
+#include "gene_load.h"
+#include "gene_common.h"
 
 zend_class_entry * gene_exception_ce;
 
-/** {{{ int gene_exception_error_register(zval *callback,zval *error_type TSRMLS_DC)
+/** {{{ void gene_exception_error_register(zval *callback TSRMLS_DC)
  */
-int gene_exception_error_register(zval *callback, zval *error_type TSRMLS_DC) {
-	zval *ret;
-	zval *params[2] = { 0 };
-	zval function = { { 0 }, 0 };
-	int arg_num = 1;
+void gene_exception_error_register(zval *callback TSRMLS_DC) {
+	zval *call = NULL,*func = NULL;
 
+	MAKE_STD_ZVAL(func);
+	ZVAL_STRING(func, GENE_ERROR_HANDLER, 1);
 	if (!callback) {
-		MAKE_STD_ZVAL(callback);
+		MAKE_STD_ZVAL(call);
 		if (GENE_G(use_namespace)) {
-			ZVAL_STRING(callback, GENE_ERROR_FUNC_NAME_NS, 1);
+			ZVAL_STRING(call, GENE_ERROR_FUNC_NAME_NS, 1);
 		} else {
-			ZVAL_STRING(callback, GENE_ERROR_FUNC_NAME, 1);
+			ZVAL_STRING(call, GENE_ERROR_FUNC_NAME, 1);
 		}
-	}
-	params[0] = callback;
-	if (error_type) {
-		params[1] = error_type;
-		arg_num = 2;
+		gene_zend_func_call_1(func, call);
+	} else {
+		gene_zend_func_call_1(func, callback);
 	}
 
-	ZVAL_STRING(&function, "set_error_handler", 0);
-	MAKE_STD_ZVAL(ret);
-	if (call_user_function(EG(function_table), NULL, &function, ret, arg_num,
-			params TSRMLS_CC) == FAILURE) {
-		if (ret) {
-			zval_dtor(ret);
-		}
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
-				"Call to set_error_handler failed");
-		return 0;
+	zval_ptr_dtor(&func);
+	if (call) {
+		zval_ptr_dtor(&call);
 	}
-	if (ret) {
-		zval_dtor(ret);
-	}
-	return 1;
 }
 
-/** {{{ int gene_exception_register(zval *callback,zval *error_type TSRMLS_DC)
+/** {{{ void gene_exception_register(zval *callback TSRMLS_DC)
  */
-int gene_exception_register(zval *callback, zval *error_type TSRMLS_DC) {
-	zval *ret;
-	zval *params[2] = { 0 };
-	zval function = { { 0 }, 0 };
-	int arg_num = 1;
+void gene_exception_register(zval *callback TSRMLS_DC) {
+	zval *call = NULL, *func = NULL;
 
+	MAKE_STD_ZVAL(func);
+	ZVAL_STRING(func, GENE_EXCEPTION_HANDLER, 1);
 	if (!callback) {
-		MAKE_STD_ZVAL(callback);
+		MAKE_STD_ZVAL(call);
 		if (GENE_G(use_namespace)) {
-			ZVAL_STRING(callback, GENE_EXCEPTION_FUNC_NAME_NS, 1);
+			ZVAL_STRING(call, GENE_EXCEPTION_FUNC_NAME_NS, 1);
 		} else {
-			ZVAL_STRING(callback, GENE_EXCEPTION_FUNC_NAME, 1);
+			ZVAL_STRING(call, GENE_EXCEPTION_FUNC_NAME, 1);
 		}
-
-	}
-	params[0] = callback;
-	if (error_type) {
-		params[1] = error_type;
-		arg_num = 2;
+		gene_zend_func_call_1(func, call);
+	} else {
+		gene_zend_func_call_1(func, callback);
 	}
 
-	ZVAL_STRING(&function, "set_exception_handler", 0);
-	MAKE_STD_ZVAL(ret);
-	if (call_user_function(EG(function_table), NULL, &function, ret, arg_num,
-			params TSRMLS_CC) == FAILURE) {
-		if (ret) {
-			zval_dtor(ret);
-		}
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
-				"Call to set_exception_handler failed");
-		return 0;
+	zval_ptr_dtor(&func);
+	if (call) {
+		zval_ptr_dtor(&call);
 	}
-	if (ret) {
-		zval_dtor(ret);
-	}
-	return 1;
 }
 
 /** {{{void gene_trigger_error(int type TSRMLS_DC, char *format, ...)
@@ -212,28 +185,24 @@ PHP_METHOD(gene_exception, getPrevious) {
 /** {{{ public gene_exception::setErrorHandler(string $callbacak[, int $error_types = E_ALL | E_STRICT ] )
  */
 PHP_METHOD(gene_exception, setErrorHandler) {
-	zval *callback, *error_type = NULL;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z|z", &callback,
-			&error_type) == FAILURE) {
+	zval *callback = NULL;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &callback) == FAILURE) {
 		return;
 	}
-	gene_exception_error_register(callback, error_type TSRMLS_CC);
-	RETURN_TRUE
-	;
+	gene_exception_error_register(callback TSRMLS_CC);
+	RETURN_TRUE;
 }
 /* }}} */
 
 /** {{{ public gene_exception::setExceptionHandler(string $callbacak[, int $error_types = E_ALL | E_STRICT ] )
  */
 PHP_METHOD(gene_exception, setExceptionHandler) {
-	zval *callback = NULL, *error_type = NULL;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|zz", &callback,
-			&error_type) == FAILURE) {
+	zval *callback = NULL;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|z", &callback) == FAILURE) {
 		return;
 	}
-	gene_exception_register(callback, error_type TSRMLS_CC);
-	RETURN_TRUE
-	;
+	gene_exception_register(callback TSRMLS_CC);
+	RETURN_TRUE;
 }
 /* }}} */
 
@@ -244,16 +213,13 @@ PHP_METHOD(gene_exception, doError) {
 	char *msg, *file;
 	zval *params = NULL;
 	long code = 0, line = 0, msg_len, file_len;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ls|slz", &code, &msg,
-			&msg_len, &file, &file_len, &line, &params) == FAILURE) {
-		RETURN_NULL()
-		;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ls|slz", &code, &msg, &msg_len, &file, &file_len, &line, &params) == FAILURE) {
+		RETURN_NULL();
 	}
 	if (GENE_G(gene_error) == 1) {
 		gene_trigger_error(code, "%s", msg);
 	}
-	RETURN_TRUE
-	;
+	RETURN_TRUE;
 }
 /* }}} */
 

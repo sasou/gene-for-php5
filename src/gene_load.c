@@ -104,105 +104,55 @@ int gene_load_import(char *path TSRMLS_DC) {
 }
 /* }}} */
 
-/** {{{ int gene_loader_register(zval *loader,char *methodName TSRMLS_DC)
+/** {{{ int gene_zend_func_call(zval *function, zval *params TSRMLS_DC)
  */
-int gene_loader_register(zval *loader, char *methodName TSRMLS_DC) {
-	zval *autoload, *method, *function, *ret = NULL;
-	zval **params[1] = { &autoload };
+int gene_zend_func_call_1(zval *function, zval *params TSRMLS_DC) {
+	zval *ret = NULL;
+	zval ***params_array;
 
-	MAKE_STD_ZVAL(autoload);
-	array_init(autoload);
-
-	MAKE_STD_ZVAL(method);
-	if (methodName) {
-		ZVAL_STRING(method, methodName, 1);
-	} else {
-		if (GENE_G(use_namespace)) {
-			ZVAL_STRING(method, GENE_AUTOLOAD_FUNC_NAME_NS, 1);
-		} else {
-			ZVAL_STRING(method, GENE_AUTOLOAD_FUNC_NAME, 1);
-		}
-	}
-
-	zend_hash_next_index_insert(Z_ARRVAL_P(autoload), &loader, sizeof(zval *),
-			NULL);
-	zend_hash_next_index_insert(Z_ARRVAL_P(autoload), &method, sizeof(zval *),
-			NULL);
-
-	MAKE_STD_ZVAL(function);
-	ZVAL_STRING(function, GENE_SPL_AUTOLOAD_REGISTER_NAME, 0);
-
+	params_array = (zval ***) emalloc(sizeof(zval **));
+	params_array[0] = &params;
 	do {
-		zend_fcall_info fci = { sizeof(fci), EG(function_table), function,
-		NULL, &ret, 1, (zval ***) params,
-		NULL, 1 };
-
+		zend_fcall_info fci = { sizeof(fci), EG(function_table), function, NULL, &ret, 1, (zval ***) params_array, NULL, 1 };
 		if (zend_call_function(&fci, NULL TSRMLS_CC) == FAILURE) {
 			if (ret) {
 				zval_ptr_dtor(&ret);
 			}
-			efree(function);
-			zval_ptr_dtor(&autoload);
-			php_error_docref(NULL TSRMLS_CC, E_WARNING,
-					"Unable to register autoload function %s",
-					GENE_AUTOLOAD_FUNC_NAME);
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to Call function %s", Z_STRVAL_P(function));
 			return 0;
 		}
-
-		if (ret) {
-			zval_ptr_dtor(&ret);
-		}
-		efree(function);
-		zval_ptr_dtor(&autoload);
 	} while (0);
+
+	if (ret) {
+		zval_ptr_dtor(&ret);
+	}
+	efree(params_array);
 	return 1;
 }
 /* }}} */
 
-/** {{{ int gene_loader_register_function(char *methodName TSRMLS_DC)
- */
-int gene_loader_register_function(TSRMLS_DC) {
-	zval *method, *function, *ret = NULL;
-	zval **params[1] = { &method };
 
-	MAKE_STD_ZVAL(method);
+/** {{{ void gene_loader_register_function(TSRMLS_DC)
+ */
+void gene_loader_register_function(TSRMLS_DC) {
+	zval *params = NULL,*func = NULL;
+
+	MAKE_STD_ZVAL(func);
+	ZVAL_STRING(func, GENE_SPL_AUTOLOAD_REGISTER_NAME, 1);
+
+	MAKE_STD_ZVAL(params);
 	if (GENE_G(auto_load_fun)) {
-		ZVAL_STRING(method, GENE_G(auto_load_fun), 1);
+		ZVAL_STRING(params, GENE_G(auto_load_fun), 1);
 	} else {
 		if (GENE_G(use_namespace)) {
-			ZVAL_STRING(method, GENE_AUTOLOAD_FUNC_NAME_NS, 1);
+			ZVAL_STRING(params, GENE_AUTOLOAD_FUNC_NAME_NS, 1);
 		} else {
-			ZVAL_STRING(method, GENE_AUTOLOAD_FUNC_NAME, 1);
+			ZVAL_STRING(params, GENE_AUTOLOAD_FUNC_NAME, 1);
 		}
 	}
-
-	MAKE_STD_ZVAL(function);
-	ZVAL_STRING(function, GENE_SPL_AUTOLOAD_REGISTER_NAME, 0);
-
-	do {
-		zend_fcall_info fci = { sizeof(fci), EG(function_table), function,
-		NULL, &ret, 1, (zval ***) params,
-		NULL, 1 };
-
-		if (zend_call_function(&fci, NULL TSRMLS_CC) == FAILURE) {
-			if (ret) {
-				zval_ptr_dtor(&ret);
-			}
-			efree(function);
-			zval_ptr_dtor(&method);
-			php_error_docref(NULL TSRMLS_CC, E_WARNING,
-					"Unable to register autoload function %s",
-					GENE_G(auto_load_fun));
-			return 0;
-		}
-
-		if (ret) {
-			zval_ptr_dtor(&ret);
-		}
-		efree(function);
-		zval_ptr_dtor(&method);
-	} while (0);
-	return 1;
+	gene_zend_func_call_1(func, params);
+	zval_ptr_dtor(&func);
+	zval_ptr_dtor(&params);
 }
 /* }}} */
 
