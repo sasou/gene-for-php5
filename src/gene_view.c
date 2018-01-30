@@ -141,7 +141,8 @@ static int parser_templates(php_stream **stream, char *compile_path) {
 			"/\\{(\\$[a-z0-9_]+)\\.([a-z0-9_]+).([a-z0-9_]+)\\}/i",
 			"/\\{for\\s+(.+?)\\}/is", "/\\{\\/for\\}/i",
 			"/\\{\\:\\s?(.+?)\\}/is", "/\\{\\~\\s?(.+?)\\}/is",
-			"/\\{contains\\}/" };
+			"/\\{contains\\}/",
+			"/\\{containsExt\\}/" };
 
 	char replace[PARSER_NUMS][100] = { "\\1", "{\\1}",
 			"<?php gene_view::template('\\1')?>", "``if \\1``", "``else``",
@@ -154,7 +155,8 @@ static int parser_templates(php_stream **stream, char *compile_path) {
 			"<?php echo \\1;?>", "<?php \\1?>", "<?php echo \\1[\'\\2\']; ?>",
 			"<?php echo \\1[\'\\2\'][\'\\3\']; ?>", "<?php for(\\1) { ?>",
 			"<?php } ?>", "<?php echo \\1; ?>", "<?php \\1; ?>",
-			"<?php $this::contains()?>" };
+			"<?php $this::contains()?>",
+			"<?php $this::containsExt()?>" };
 
 	smart_str content = { 0 };
 	subject = (char *) ecalloc(1024, sizeof(char));
