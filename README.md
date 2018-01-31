@@ -1,7 +1,8 @@
 # php-gene 
 
-	Simple, high performance,C extension framework for php5！
-    版本：2.0.1
+	Simple, high performance,C extension framework for php5！  
+	
+    版本：2.1.0  
     
 php7的版本 ：https://github.com/sasou/php-gene-for-php7
 
